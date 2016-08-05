@@ -1,0 +1,32 @@
+﻿{
+  "title": "Common Library for S-Innoations Service Fabric Gateway",
+  "version": "1.0.1-*",
+  "name": "S-Innovations.ServiceFabric.Gateway.Common",
+
+  "dependencies": {
+
+  },
+
+  "packOptions": {
+    "owners": [ "Poul K. Sørensen" ],
+    "tags": [ "S-Innovations ServiceFabric Gateway" ]
+  },
+
+  "frameworks": {
+    "netstandard1.3": {
+      "imports": "dnxcore50",
+      "dependencies": {
+        "NETStandard.Library": "1.6.0"
+      }
+    },
+    "net45": {}
+  },
+  "scripts": {
+    "postcompile": [
+      "nuget delete -Verbosity detailed -noninteractive -source %USERPROFILE%\\.nuget\\packages %project:name% %project:version%",
+      "nuget delete -Verbosity detailed -noninteractive -source c:\\localpackages %project:name% %project:version%",
+      "dotnet pack --no-build --configuration %compile:Configuration% -o ../../artifacts/",
+      "nuget add -Verbosity detailed -NonInteractive -source c:\\localpackages  ../../artifacts/%project:name%.%project:version%.nupkg"
+    ]
+  }
+}

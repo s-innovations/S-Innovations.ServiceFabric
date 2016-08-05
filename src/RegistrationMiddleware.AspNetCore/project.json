@@ -1,0 +1,44 @@
+{
+  "title": "ServiceFabric Gateway Registration Middleware for AspNetCore",
+  "version": "1.0.1-*",
+  "name": "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore",
+
+  "packOptions": {
+    "owners": [ "Poul K. Sørensen" ],
+    "tags": [ "S-Innovations ServiceFabric Gateway" ]
+  },
+
+
+  "scripts": {
+    "postcompile": [
+      "nuget delete -Verbosity detailed -noninteractive -source %USERPROFILE%\\.nuget\\packages %project:name% %project:version%",
+      "nuget delete -Verbosity detailed -noninteractive -source c:\\localpackages %project:name% %project:version%",
+      "dotnet pack --no-build --configuration %compile:Configuration% -o ../../artifacts/",
+      "nuget add -Verbosity detailed -NonInteractive -source c:\\localpackages  ../../artifacts/%project:name%.%project:version%.nupkg"
+    ]
+  },
+
+  "dependencies": {
+    "Gateway.Common": "1.0.1-*",
+    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0",
+    "NETStandard.Library": "1.6.0",
+    "Newtonsoft.Json": "9.0.1"
+  },
+  "buildOptions": {
+  
+  },
+  "frameworks": {
+    "net46": {
+      "dependencies": {
+        "Microsoft.ServiceFabric": "5.1.163"
+      }
+    },
+    "netstandard1.3": {
+      "imports": "dnxcore50"
+    }
+
+
+  }
+
+}
