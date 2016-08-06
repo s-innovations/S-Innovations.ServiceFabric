@@ -11,10 +11,10 @@
 
   "scripts": {
     "postcompile": [
-      "nuget delete -Verbosity detailed -noninteractive -source %USERPROFILE%\\.nuget\\packages %project:name% %project:version%",
-      "nuget delete -Verbosity detailed -noninteractive -source c:\\localpackages %project:name% %project:version%",
-      "dotnet pack --no-build --configuration %compile:Configuration% -o ../../artifacts/",
-      "nuget add -Verbosity detailed -NonInteractive -source c:\\localpackages  ../../artifacts/%project:name%.%project:version%.nupkg"
+      //"nuget delete -Verbosity detailed -noninteractive -source %USERPROFILE%\\.nuget\\packages %project:name% %project:version%",
+      //"nuget delete -Verbosity detailed -noninteractive -source c:\\localpackages %project:name% %project:version%",
+      //"dotnet pack --no-build --configuration %compile:Configuration% -o ../../artifacts/",
+      //"nuget add -Verbosity detailed -NonInteractive -source c:\\localpackages  ../../artifacts/%project:name%.%project:version%.nupkg"
     ]
   },
 
