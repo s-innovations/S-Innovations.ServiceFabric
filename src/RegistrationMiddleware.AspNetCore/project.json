@@ -19,11 +19,11 @@
   },
 
   "dependencies": {
-    "Gateway.Common": "1.0.1-*",
     "Microsoft.AspNetCore.Http.Abstractions": "1.0.0",
     "Microsoft.Extensions.DependencyInjection": "1.0.0",
     "NETStandard.Library": "1.6.0",
-    "Newtonsoft.Json": "9.0.1"
+    "Newtonsoft.Json": "9.0.1",
+    "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*"
   },
   "buildOptions": {
   
