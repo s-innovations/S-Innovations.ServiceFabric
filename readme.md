@@ -1,8 +1,8 @@
 
 [![Visual Studio Team services](https://img.shields.io/vso/build/sinnovations/c4ea4838-1bed-4dff-801b-4a20b7da1f0a/16.svg?style=flat-square&label=build:%20ServiceFabric.Gateway)]()
 [![Myget Version](http://img.shields.io/myget/s-innovations/vpre/S-Innovations.ServiceFabric.Gateway.Common.svg?style=flat-square&label=myget:%20Gateway.Common)](https://www.myget.org/feed/s-innovations/package/nuget/S-Innovations.ServiceFabric.Gateway.Common)
-[![Myget Version](http://img.shields.io/myget/s-innovations/vpre/S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.svg?style=flat-square&label=myget:%20RigistrationMiddleware.AspNetCore)](https://www.myget.org/feed/s-innovations/package/nuget/S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore )
-[![Myget Version](http://img.shields.io/myget/s-innovations/vpre/S-Innovations.ServiceFabric.RegistrationMiddleware.Owin.svg?style=flat-square&label=myget:%20RigistrationMiddleware.Owin)](https://www.myget.org/feed/s-innovations/package/nuget/S-Innovations.ServiceFabric.RegistrationMiddleware.Owin)
+[![Myget Version](http://img.shields.io/myget/s-innovations/vpre/S-Innovations.ServiceFabric.Gateway.RegistrationMiddleware.AspNetCore.svg?style=flat-square&label=myget:%20RigistrationMiddleware.AspNetCore)](https://www.myget.org/feed/s-innovations/package/nuget/S-Innovations.ServiceFabric.Gateway.RegistrationMiddleware.AspNetCore )
+[![Myget Version](http://img.shields.io/myget/s-innovations/vpre/S-Innovations.ServiceFabric.Gateway.RegistrationMiddleware.Owin.svg?style=flat-square&label=myget:%20RigistrationMiddleware.Owin)](https://www.myget.org/feed/s-innovations/package/nuget/S-Innovations.ServiceFabric.Gateway.RegistrationMiddleware.Owin)
 
 #S-Innovations ServiceFabric Gateway and Architecture Overview
 
