@@ -4,7 +4,7 @@
   "name": "S-Innovations.ServiceFabric.Gateway.RegistrationMiddleware.AspNetCore",
 
   "packOptions": {
-    "owners": [ "Poul K. Sørensen" ],
+    "owners": [ "S-Innoations v/Poul K. Sørensen" ],
     "tags": [ "S-Innovations ServiceFabric Gateway" ]
   },
 
