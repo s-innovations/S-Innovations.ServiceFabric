@@ -29,7 +29,7 @@
   
   },
   "frameworks": {
-    "net45": {
+    "net452": {
       "dependencies": {
         "Microsoft.ServiceFabric": "5.1.163"
       }
