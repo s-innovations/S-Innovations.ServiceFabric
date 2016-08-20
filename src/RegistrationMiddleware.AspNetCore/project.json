@@ -26,6 +26,7 @@
     "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*"
   },
   "buildOptions": {
+    "define": [ "NETCORE" ]
   
   },
   "frameworks": {

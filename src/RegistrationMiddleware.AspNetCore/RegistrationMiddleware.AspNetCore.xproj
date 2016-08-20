@@ -7,7 +7,7 @@
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>9cdc0e92-36ca-4014-b503-17e077f6a2a2</ProjectGuid>
-    <RootNamespace>SInnovations.ServiceFabric.AspNetCore.RegistrationMiddleware</RootNamespace>
+    <RootNamespace>SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>

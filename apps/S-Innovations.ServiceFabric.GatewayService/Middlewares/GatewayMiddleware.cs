@@ -61,7 +61,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Middlewares
                                                                                                _options.ListenerName,
                                                                                                _options.OperationRetrySettings);
 
-                using (var responseMessage = await servicePartitionClient.InvokeWithRetryAsync(httpClient => ExecuteServiceCallAsync(httpClient, context)))
+                using (var responseMessage = await servicePartitionClient.InvokeWithRetryAsync(httpClient => ExecuteServiceCallAsync(httpClient, context,_options)))
                 {
                     await responseMessage.CopyToCurrentContext(context);
                 }
@@ -73,7 +73,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Middlewares
             }
         }
 
-        private async Task<HttpResponseMessage> ExecuteServiceCallAsync(HttpCommunicationClient httpClient, HttpContext context)
+        private async Task<HttpResponseMessage> ExecuteServiceCallAsync(HttpCommunicationClient httpClient, HttpContext context, ServiceProviderInfomation options)
         {
 
             var requestMessage = new HttpRequestMessage();
@@ -102,9 +102,20 @@ namespace SInnovations.ServiceFabric.GatewayService.Middlewares
             // Construct the request URL
             //
             var baseAddress = httpClient.BaseAddress;
+
+            // Sticky Sessions
+            string value;
+            context.Request.Cookies.TryGetValue("SERVER-SF", out value);
+            if (options.StickySession && !string.IsNullOrEmpty(value)){
+                baseAddress = new Uri( value);
+            } 
+
+
             var pathAndQuery = PathString.FromUriComponent(baseAddress) + context.Request.Path + context.Request.QueryString;
             requestMessage.RequestUri = new Uri($"{baseAddress.Scheme}://{baseAddress.Host}:{baseAddress.Port}{pathAndQuery}", UriKind.Absolute);
 
+
+           
 
 
             //
@@ -125,6 +136,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Middlewares
             if ((statusCode >= 500 && statusCode < 600) || statusCode == (int)HttpStatusCode.NotFound)
             {
                 throw new SimpleHttpResponseException(responseMessage.StatusCode, "Service call failed");
+            }
+
+            if (options.StickySession && string.IsNullOrEmpty(value))
+            {
+                context.Response.Cookies.Append("SERVER-SF", baseAddress.AbsoluteUri);
             }
 
             return responseMessage;

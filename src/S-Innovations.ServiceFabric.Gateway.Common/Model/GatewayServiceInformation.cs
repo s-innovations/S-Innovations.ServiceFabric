@@ -8,6 +8,7 @@ namespace SInnovations.ServiceFabric.Gateway.Model
     public class GatewayServiceInformation
     {
         public string PathPrefix { get; set; }
+        public bool StickySession { get; set; }
 
         public Uri GatewaySericeName { get; set; }
     }
