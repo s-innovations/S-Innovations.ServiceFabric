@@ -9,7 +9,8 @@
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "System.Net.Http": "4.1.0",
     "Newtonsoft.Json": "9.0.1",
-    "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*"
+    "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*",
+    "Microsoft.AspNetCore.WebSockets": "0.2.0-*"
   },
 
   "tools": {

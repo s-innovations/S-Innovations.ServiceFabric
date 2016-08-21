@@ -147,6 +147,7 @@ namespace SInnovations.ServiceFabric.GatewayService
     }
     public static class ServiceCollectionExtensions
     {
+
         public static IServiceCollection AddHttpRequestDispatcherProvider(this IServiceCollection services, HttpCommunicationClientFactory provider)
         {
             if (services == null)
@@ -172,6 +173,7 @@ namespace SInnovations.ServiceFabric.GatewayService
             }
 
             services.AddHttpRequestDispatcherProvider(new HttpCommunicationClientFactory(null, new[] { new AlwaysTreatedAsNonTransientExceptionHandler() }, null));
+            services.AddSingleton(new WsCommunicationClientFactory());
 
             return services;
         }
@@ -201,6 +203,8 @@ namespace SInnovations.ServiceFabric.GatewayService
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseWebSockets();
 
             app.RunGateway();
             
