@@ -15,7 +15,7 @@ The goal for this project is
 
 - [] to make a Service Fabric Application that can be the public endpoint of microservices and provide as little friction as possible when new services are added.
 - [] make it easy adorptable for new startups/platforms with key incredients: IdentityServer, Storage API and its own little provider manager running in the cluster.
-- [] get som adorption and provide a cashflow back. I dont know how yet.
+- [] get som adorption and provide a cashflow back. I dont know how yet, but looking at https://liberapay.com/
 
 ## TODO
 - [x] Prefix Path matching
