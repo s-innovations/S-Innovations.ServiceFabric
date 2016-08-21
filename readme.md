@@ -14,11 +14,12 @@ The gateway is monitoring other SF services that reply successfull on `/sf-gatew
 The goal for this project is
 
 - [] to make a Service Fabric Application that can be the public endpoint of microservices and provide as little friction as possible when new services are added.
-- [] make it easy adorptable for new startups/platforms with key incredients: IdentityService, Storage API and its own little provider manager.
-- [] get som adorption and provide a cashflow back.
+- [] make it easy adorptable for new startups/platforms with key incredients: IdentityServer, Storage API and its own little provider manager running in the cluster.
+- [] get som adorption and provide a cashflow back. I dont know how yet.
 
 ## TODO
 - [x] Prefix Path matching
+- [] Add websocket support to reverse proxy
 - [] Resource Provider Path Matching
 - [] Rules for precendence when multiply service forwards are possible.
 - [] Migrate S-Innovations.Identity to Idsvr4 and expose it on /idsrv prefix
