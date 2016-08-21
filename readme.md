@@ -60,3 +60,5 @@ The service also allows the normal .Net for Azure Storage Clients to be used wit
 
 
 
+
+#doing some pull requests changes with github
