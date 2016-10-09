@@ -26,6 +26,7 @@
         "Microsoft.ServiceFabric.Services": "2.2.207"
       },
       "frameworkAssemblies": {
+        "System.Security": "4.0.0.0",
         "System.Net.Http": "4.0.0.0"
       }
     }
