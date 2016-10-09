@@ -33,10 +33,10 @@
       "dependencies": {
         "Microsoft.ServiceFabric": "5.2.207"
       }
-    },
-    "netstandard1.6": {
-      "imports": "dnxcore50"
-    }
+    }//,
+    //"netstandard1.6": {
+    //  "imports": "dnxcore50"
+    //}
 
 
   }

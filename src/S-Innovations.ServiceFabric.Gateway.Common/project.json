@@ -13,20 +13,20 @@
   },
 
   "frameworks": {
-    "netstandard1.6": {
-      "imports": [ "dnxcore50"],
-      "dependencies": {
-        "System.Collections": "4.0.11",
-        "System.Console": "4.0.0",
-        "System.Diagnostics.StackTrace": "4.0.1",
-        "System.Linq": "4.1.0",
-        "System.Threading": "4.0.11",
-        "System.Threading.Tasks": "4.0.11",
-        "System.Threading.Thread": "4.0.0",
-        "System.Net.Http": "4.1.0",
-        "Microsoft.ServiceFabric.Services": "0.6.0-preview-01"
-      }
-    },
+    //"netstandard1.6": {
+    //  "imports": [ "dnxcore50"],
+    //  "dependencies": {
+    //    "System.Collections": "4.0.11",
+    //    "System.Console": "4.0.0",
+    //    "System.Diagnostics.StackTrace": "4.0.1",
+    //    "System.Linq": "4.1.0",
+    //    "System.Threading": "4.0.11",
+    //    "System.Threading.Tasks": "4.0.11",
+    //    "System.Threading.Thread": "4.0.0",
+    //    "System.Net.Http": "4.1.0",
+    //    "Microsoft.ServiceFabric.Services": "0.6.0-preview-01"
+    //  }
+    //},
     "net452": {
       "dependencies": {
         "Microsoft.ServiceFabric.Services": "2.2.207"
