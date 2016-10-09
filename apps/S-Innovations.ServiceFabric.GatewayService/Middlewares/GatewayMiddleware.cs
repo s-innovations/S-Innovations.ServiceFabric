@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication.Client;
-using SInnovations.ServiceFabric.GatewayService.Communication;
+using SInnovations.ServiceFabric.Gateway.Communication;
 using Microsoft.Extensions.DependencyInjection;
 using SInnovations.ServiceFabric.GatewayService.Extensions;
 

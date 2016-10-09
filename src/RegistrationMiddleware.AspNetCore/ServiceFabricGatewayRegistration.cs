@@ -15,13 +15,15 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.Owin
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
+
 #endif
 
 
 {
-   
+
     public class ServiceRegistrationMiddleware
 #if OWIN
         : OwinMiddleware 
@@ -49,6 +51,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
                 throw new ArgumentNullException(nameof(info));
             }
 
+
+            
           
             _info = info;
         }
@@ -76,9 +80,41 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
                 
                 if (context.Request.Headers.ContainsKey("X-Forwarded-PathBase"))
                 {
-                    var vlues = context.Request.Headers["X-Forwarded-PathBase"];
-                    context.Request.PathBase = new PathString( vlues.FirstOrDefault() + (context.Request.PathBase.HasValue ? context.Request.PathBase.Value : string.Empty));
+                    
+#if OWIN
+                    string[] values;
+#else
+                    StringValues values;
+#endif
+                    if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out values))
+                    {
+                        context.Request.PathBase = new PathString(values.FirstOrDefault() + (context.Request.PathBase.HasValue ? context.Request.PathBase.Value : string.Empty));
+                    }
+                }
 
+                if (context.Request.Headers.ContainsKey("X-Forwarded-Path"))
+                {
+#if OWIN
+                    string[] path;
+#else
+                    StringValues path;
+#endif
+                    if (context.Request.Headers.TryGetValue("X-Forwarded-Path", out path))
+                    {
+
+                        var orignalPath = path.First(); // /hello/blog  /blog
+                        var idx = orignalPath.IndexOf(context.Request.Path.Value, 1);
+                        if (idx == -1)
+                        {
+                            idx = orignalPath.Length;
+                        }
+
+                        var pathBase = orignalPath.Substring(0, idx);
+                        if (context.Request.PathBase.Value != pathBase)
+                        {
+                            context.Request.PathBase = new PathString( pathBase + (context.Request.PathBase.HasValue ? context.Request.PathBase.Value : string.Empty));
+                        }
+                    }
                 }
 
                 await Next.Invoke(context);

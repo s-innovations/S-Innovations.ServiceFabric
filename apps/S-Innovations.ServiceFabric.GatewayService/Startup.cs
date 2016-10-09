@@ -15,7 +15,7 @@ using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication.Client;
 using Newtonsoft.Json;
 using SInnovations.ServiceFabric.Gateway.Model;
-using SInnovations.ServiceFabric.GatewayService.Communication;
+using SInnovations.ServiceFabric.Gateway.Communication;
 using SInnovations.ServiceFabric.GatewayService.Middlewares;
 
 namespace SInnovations.ServiceFabric.GatewayService
@@ -229,11 +229,14 @@ namespace SInnovations.ServiceFabric.GatewayService
             }, inner => inner.UseMiddleware<HttpGatewayMiddleware>());
 
 
-            app.Run(context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.FromResult(0);
-            });
+
+            //app.Run(context =>
+            //{
+            //    context.Response.StatusCode = 404;
+            //    return Task.FromResult(0);
+            //});
+
+            app.UseWelcomePage();
 
             return app;
         }

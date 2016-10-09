@@ -12,6 +12,11 @@
 
   <!-- Code package is your service executable. -->
   <CodePackage Name="Code" Version="1.0.0">
+    <SetupEntryPoint>
+      <ExeHost>
+        <Program>setupAcl.cmd</Program>
+      </ExeHost>
+    </SetupEntryPoint>
     <EntryPoint>
       <ExeHost>
         <Program>S-Innovations.ServiceFabric.GatewayService.exe</Program>
@@ -30,6 +35,7 @@
            listen. Please note that if your service is partitioned, this port is shared with 
            replicas of different partitions that are placed in your code. -->
       <Endpoint Protocol="http" Name="ServiceEndpoint" Type="Input" Port="8498" />
+      <Endpoint Protocol="http" Name="ServiceEndpoint1" Type="Input" Port="8499" />
     </Endpoints>
   </Resources>
 </ServiceManifest>

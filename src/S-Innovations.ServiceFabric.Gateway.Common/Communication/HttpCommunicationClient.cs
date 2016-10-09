@@ -6,9 +6,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Communication.Client;
 
-namespace SInnovations.ServiceFabric.GatewayService.Communication
+namespace SInnovations.ServiceFabric.Gateway.Communication
 {
-    
+
     public class HttpCommunicationClient : HttpClient, ICommunicationClient
     {
         public HttpCommunicationClient()

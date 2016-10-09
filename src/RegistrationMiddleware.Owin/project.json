@@ -21,7 +21,7 @@
     "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*"
   },
   "frameworks": {
-    "net45": {}
+    "net452": {}
   },
   "buildOptions": {
     "define": [ "OWIN" ],

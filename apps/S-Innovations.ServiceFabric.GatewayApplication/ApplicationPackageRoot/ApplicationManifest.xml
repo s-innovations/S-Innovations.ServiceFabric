@@ -9,6 +9,9 @@
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="S-Innovations.ServiceFabric.GatewayServicePkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
+    <Policies>
+      <RunAsPolicy CodePackageRef="Code" UserRef="Admin" EntryPointType="All" />
+    </Policies>
   </ServiceManifestImport>
   <DefaultServices>
     <!-- The section below creates instances of service types, when an instance of this 
@@ -22,4 +25,13 @@
       </StatelessService>
     </Service>
   </DefaultServices>
+  <Principals>
+    <Users>
+      <User Name="Admin">
+        <MemberOf>
+          <SystemGroup Name="Administrators" />
+        </MemberOf>
+      </User>
+    </Users>
+  </Principals>
 </ApplicationManifest>
