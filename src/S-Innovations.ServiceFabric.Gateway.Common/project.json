@@ -13,13 +13,21 @@
   },
 
   "frameworks": {
-    "netstandard1.3": {
+    "netstandard1.6": {
       "imports": "dnxcore50",
       "dependencies": {
-        "NETStandard.Library": "1.6.0"
+        "NETStandard.Library": "1.6.0",
+        "System.Net.Http": "4.1.0"
       }
     },
-    "net45": {}
+    "net452": {
+      "dependencies": {
+        "Microsoft.ServiceFabric.Services": "2.2.207"
+      },
+      "frameworkAssemblies": {
+        "System.Net.Http": "4.0.0.0"
+      }
+    }
   },
   "scripts": {
     "postcompile": [

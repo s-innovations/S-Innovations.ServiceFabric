@@ -26,16 +26,16 @@
     "S-Innovations.ServiceFabric.Gateway.Common": "1.0.1-*"
   },
   "buildOptions": {
-    "define": [ "NETCORE" ]
+   "define": [ "NETCORE" ]
   
   },
   "frameworks": {
     "net452": {
       "dependencies": {
-        "Microsoft.ServiceFabric": "5.1.163"
+        "Microsoft.ServiceFabric": "5.2.207"
       }
     },
-    "netstandard1.3": {
+    "netstandard1.6": {
       "imports": "dnxcore50"
     }
 
