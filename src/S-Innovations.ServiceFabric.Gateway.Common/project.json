@@ -4,7 +4,7 @@
   "name": "S-Innovations.ServiceFabric.Gateway.Common",
 
   "dependencies": {
-
+    "Microsoft.ServiceFabric.Services": "2.4.145"
   },
 
   "packOptions": {
@@ -29,7 +29,6 @@
     //},
     "net452": {
       "dependencies": {
-        "Microsoft.ServiceFabric.Services": "2.2.207"
       },
       "frameworkAssemblies": {
         "System.Net.Http": "4.0.0.0"

@@ -20,6 +20,6 @@
                                     AzureActiveDirectory="true"
                                     ServerCertThumbprint="0123456789012345678901234567890123456789" />
   -->
-  <ClusterConnectionParameters ConnectionEndpoint="" />
+  <ClusterConnectionParameters ConnectionEndpoint="earthml.westeurope.cloudapp.azure.com:19000" X509Credential="true" ServerCertThumbprint="3B528F30CF0813FAA9232C1B12ACA9211E2AF2B7" FindType="FindByThumbprint" FindValue="3B528F30CF0813FAA9232C1B12ACA9211E2AF2B7" StoreLocation="CurrentUser" StoreName="My" />
   <ApplicationParameterFile Path="..\ApplicationParameters\Cloud.xml" />
 </PublishProfile>
