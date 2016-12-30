@@ -38,10 +38,10 @@
   },
 
   "scripts": {
-    "prepublish": [
-      "cmd /c copy C:\\Users\\pks\\.nuget\\packages\\Microsoft.ServiceFabric.Actors\\2.4.145\\build\\FabActUtil.exe .\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe",
-      ".\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe /spp:PackageRoot /t:manifest /sp:S-Innovations.ServiceFabric.GatewayService /in:.\\bin\\Debug\\net46\\win7-x64\\S-Innovations.ServiceFabric.GatewayService.exe",
-      "cmd /c del .\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe"
-    ]
+    //"prepublish": [
+    //  "cmd /c copy C:\\Users\\pks\\.nuget\\packages\\Microsoft.ServiceFabric.Actors\\2.4.145\\build\\FabActUtil.exe .\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe",
+    //  ".\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe /spp:PackageRoot /t:manifest /sp:S-Innovations.ServiceFabric.GatewayService /in:.\\bin\\Debug\\net46\\win7-x64\\S-Innovations.ServiceFabric.GatewayService.exe",
+    //  "cmd /c del .\\bin\\Debug\\net46\\win7-x64\\FabActUtil.exe"
+    //]
   }
 }
