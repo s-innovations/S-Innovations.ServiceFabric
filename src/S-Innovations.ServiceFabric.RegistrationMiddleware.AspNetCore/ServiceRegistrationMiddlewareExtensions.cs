@@ -23,5 +23,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
             return app;
 
         }
+
+       
     }
 }

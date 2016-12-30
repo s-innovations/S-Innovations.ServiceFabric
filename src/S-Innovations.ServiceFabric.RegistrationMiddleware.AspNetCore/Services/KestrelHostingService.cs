@@ -7,22 +7,40 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Practices.Unity;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using SInnovations.ServiceFabric.Gateway.Actors;
+using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
-
+    
     public class KestrelHostingServiceOptions{
         public string ReverseProxyPath { get;  set; }
         public string ServiceEndpointName { get; set; }
     }
 
-    
+    public static class KestrelHostingExtensions
+    {
+        public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
+            where TStartup: class
+        {
+            return container.WithKestrelHosting<KestrelHostingService<TStartup>>(serviceType, options);           
+        }
+
+        public static IUnityContainer WithKestrelHosting<THostingService,TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
+          where THostingService : KestrelHostingService<TStartup>
+          where TStartup : class
+        {
+            container.RegisterInstance(options);
+            container.WithStatelessService<THostingService>(serviceType);
+            return container;
+        }
+    }
     /// <summary>
     /// A specialized stateless service for hosting ASP.NET Core web apps.
     /// </summary>

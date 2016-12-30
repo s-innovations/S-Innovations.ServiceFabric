@@ -37,6 +37,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RegistrationMiddleware.Owin
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore", "src\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.xproj", "{9CDC0E92-36CA-4014-B503-17E077F6A2A2}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.Unity", "..\S-Innovations.ServiceFabric.Unity\src\S-Innovations.ServiceFabric.Unity\S-Innovations.ServiceFabric.Unity.xproj", "{336E79B3-41AF-46FF-978E-B74A7F9E075E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,14 @@ Global
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|x64.ActiveCfg = Release|Any CPU
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|x64.Build.0 = Release|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|x64.Build.0 = Debug|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|x64.ActiveCfg = Release|Any CPU
+		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
