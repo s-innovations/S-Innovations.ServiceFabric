@@ -1,3 +1,7 @@
 {
-  "projects": [ "src", "apps", "C:/dev/sinnovations/S-Innovations.ServiceFabric.Unity/src" ]
+  "projects": [
+    "src",   
+     "apps",
+    "C:/dev/sinnovations/S-Innovations.ServiceFabric.Unity/src"
+  ]
 }

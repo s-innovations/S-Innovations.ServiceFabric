@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Practices.Unity;
 using SInnovations.ServiceFabric.Unity;
+using SInnovations.ServiceFabric.GatewayService.Actors;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
@@ -36,8 +37,8 @@ namespace SInnovations.ServiceFabric.GatewayService
                 loggerfac.AddSerilog();
                 container.RegisterInstance(loggerfac);
 
-                container.WithStatelessService<WebHostingService>("GatewayServiceType");
-
+                container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
+                container.WithActor<GatewayServiceManagerActor>();
               
                 Thread.Sleep(Timeout.Infinite);
             }

@@ -27,7 +27,7 @@
     "define": [ "OWIN" ],
     "compile": {
       "includeFiles": [
-        "../RegistrationMiddleware.AspNetCore/ServiceFabricGatewayRegistration.cs"
+        "../S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore/ServiceFabricGatewayRegistration.cs"
       ]
     }
   }

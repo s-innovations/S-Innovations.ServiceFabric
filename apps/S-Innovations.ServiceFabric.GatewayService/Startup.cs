@@ -184,7 +184,7 @@ namespace SInnovations.ServiceFabric.GatewayService
         public void ConfigureServices(IServiceCollection services)
         {
             var provider= new HttpGatewayServiceManager();
-            provider.InitializeAsync();
+         //   provider.InitializeAsync();
 
             services.AddSingleton(provider);
             services.AddDefaultHttpRequestDispatcherProvider();
@@ -214,22 +214,26 @@ namespace SInnovations.ServiceFabric.GatewayService
         {
             //If the provider is registered delegate to gateway service, otherwise return 404;
 
-            app.MapWhen((context) =>
+            //app.MapWhen((context) =>
+            //{
+            //    var serviceProviderManager = context.RequestServices.GetService<HttpGatewayServiceManager>();
+
+
+            //    if (serviceProviderManager.HasGatewayServiceInfomation(context))
+            //    {
+            //        return true;
+            //    }
+
+
+            //    return false;
+
+            //}, inner => inner.UseMiddleware<HttpGatewayMiddleware>());
+
+
+            app.Use(async (ctx,next) =>
             {
-                var serviceProviderManager = context.RequestServices.GetService<HttpGatewayServiceManager>();
-
-                
-                if (serviceProviderManager.HasGatewayServiceInfomation(context))
-                {
-                    return true;
-                }
-
-
-                return false;
-
-            }, inner => inner.UseMiddleware<HttpGatewayMiddleware>());
-
-
+                await next();
+            });
 
             //app.Run(context =>
             //{
