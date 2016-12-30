@@ -106,7 +106,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                     foreach (var a in _proxies.Values)
                     {
-                        WriteProxyPassLocation(2,a.ForwardPath, a.BackendPath, sb);
+                        if (a.IPAddressOrFQDN == FabricRuntime.GetNodeContext().IPAddressOrFQDN)
+                        {
+                            WriteProxyPassLocation(2, a.ForwardPath, a.BackendPath, sb);
+                        }
                     }
 
                 }

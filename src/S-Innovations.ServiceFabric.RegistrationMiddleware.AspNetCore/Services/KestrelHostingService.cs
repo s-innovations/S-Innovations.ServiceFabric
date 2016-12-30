@@ -77,7 +77,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             try
             {
 
-                await gateway.OnHostOpenAsync(new GatewayEventData { ForwardPath = Options.ReverseProxyPath ?? "/", BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}" }); //(Options.ReverseProxyPath ?? "/", $"{endpoint.Protocol})://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}");
+                await gateway.OnHostOpenAsync(new GatewayEventData { ForwardPath = Options.ReverseProxyPath ?? "/", IPAddressOrFQDN = FabricRuntime.GetNodeContext().IPAddressOrFQDN, BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}" }); //(Options.ReverseProxyPath ?? "/", $"{endpoint.Protocol})://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}");
 
             }
             catch (Exception ex)

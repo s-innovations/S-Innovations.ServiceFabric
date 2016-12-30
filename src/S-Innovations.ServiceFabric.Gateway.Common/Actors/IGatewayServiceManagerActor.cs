@@ -16,6 +16,7 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
     {
         public string ForwardPath { get; set; }
         public string BackendPath { get; set; }
+        public string IPAddressOrFQDN { get; set; }
     }
 
     public interface IGatewayServiceMaanagerEvents : IActorEvents
