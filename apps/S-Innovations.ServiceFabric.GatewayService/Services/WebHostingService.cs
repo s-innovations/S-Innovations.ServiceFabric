@@ -21,44 +21,41 @@ using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
 namespace SInnovations.ServiceFabric.GatewayService.Services
 {
 
-   
+
     /// <summary>
     /// A specialized stateless service for hosting ASP.NET Core web apps.
     /// </summary>
-    public sealed class NginxGatewayService : KestrelHostingService<Startup>, IGatewayServiceMaanagerEvents, IGatewayNodeService
+    public sealed class NginxGatewayService : KestrelHostingService<Startup>, IGatewayNodeService
     {
-        private Dictionary<string, GatewayEventData> _proxies = new Dictionary<string, GatewayEventData>();
+        // private Dictionary<string, GatewayEventData> _proxies = new Dictionary<string, GatewayEventData>();
 
-        public void GameScoreUpdated(IGatewayServiceManagerActor actor, GatewayEventData data)
-        {
-            try
-            {
-                var key = data.ForwardPath + data.BackendPath;
-                Console.WriteLine(@"Updates: Game: {0}, data: {1}", actor.GetActorId(), data);
-                if(!_proxies.ContainsKey(key))
-                {
-                    _proxies.Add(key, data);
-
-                    WriteConfig();
-                    //launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
-                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
-                //    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
-                }
-            }
-            catch(Exception ex)
-            {
-
-            }
-        }
+        //public async Task GameScoreUpdatedAsync(IGatewayServiceManagerActor actor, GatewayEventData data)
+        //{
+        //    try
+        //    {
 
 
-        private string nginxProcessName = "";   
-    
+        //        await WriteConfigAsync(actor);
+        //        //launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+        //        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
+        //        //    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
-       // private IWebHost _webHost;
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //    }
+        //}
+
+
+        private string nginxProcessName = "";
+
+
+        // private IWebHost _webHost;
 
         public NginxGatewayService(StatelessServiceContext serviceContext)
-            : base(new KestrelHostingServiceOptions {
+            : base(new KestrelHostingServiceOptions
+            {
                 ServiceEndpointName = "ServiceEndpoint1",
                 ReverseProxyPath = "/manage"
             }, serviceContext)
@@ -81,12 +78,12 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 return false;
         }
 
-        private void WriteConfig()
+        private async Task WriteConfigAsync(IGatewayServiceManagerActor actor)
         {
             var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint");
             string serverUrl = $"{endpoint.Protocol}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}";
-          //  var endpoint1 = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint1");
-           // string serverUrl1 = $"{endpoint1.Protocol}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint1.Port}";
+            //  var endpoint1 = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint1");
+            // string serverUrl1 = $"{endpoint1.Protocol}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint1.Port}";
 
             var sb = new StringBuilder();
 
@@ -104,7 +101,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     sb.AppendLine($"\t\tlisten       {endpoint.Port};");
                     sb.AppendLine($"\t\tserver_name  {FabricRuntime.GetNodeContext().IPAddressOrFQDN};");
 
-                    foreach (var a in _proxies.Values)
+                    foreach (var a in await actor.GetProxiesAsync())
                     {
                         if (a.IPAddressOrFQDN == FabricRuntime.GetNodeContext().IPAddressOrFQDN)
                         {
@@ -180,9 +177,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             {
                 nginxProcessName = nginxProcess.ProcessName;
             }
-            catch (Exception )
+            catch (Exception)
             {
-   
+
             }
         }
 
@@ -205,29 +202,28 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             if (isNginxRunning())
                 launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
-          
+
 
             base.OnAbort();
         }
+        private DateTimeOffset lastWritten = DateTimeOffset.MinValue;
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
 
-            //await base.RunAsync(cancellationToken);
-            try
-            {
-                var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
 
-                await gateway.SubscribeAsync<IGatewayServiceMaanagerEvents>(this);
+            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+            //await base.RunAsync(cancellationToken);
+
+
+          //  await gateway.SubscribeAsync<IGatewayServiceMaanagerEvents>(this);
 
             //    await gateway.OnHostingNodeReadyAsync();
-            }catch(Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
 
-            WriteConfig();
+            
+            await WriteConfigAsync(gateway);
 
             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+
 
 
             while (true)
@@ -239,14 +235,24 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                 if (!isNginxRunning())
                     launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+
+                var updated = await gateway.GetLastUpdatedAsync();
+                if (!lastWritten.Equals(updated))
+                {
+                    lastWritten = updated;
+                    await WriteConfigAsync(gateway);
+
+                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
+                }
+              
             }
 
 
-           
+
 
         }
         #endregion StatelessService
 
-     
+
     }
 }

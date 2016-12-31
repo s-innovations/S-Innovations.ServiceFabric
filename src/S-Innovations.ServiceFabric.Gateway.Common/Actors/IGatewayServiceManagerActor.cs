@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Actors;
 
@@ -12,21 +13,28 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
     }
 
 
+    [DataContract]
     public class GatewayEventData
     {
+        [DataMember]
         public string ForwardPath { get; set; }
+        [DataMember]
         public string BackendPath { get; set; }
+        [DataMember]
         public string IPAddressOrFQDN { get; set; }
     }
 
     public interface IGatewayServiceMaanagerEvents : IActorEvents
     {
-        void GameScoreUpdated(IGatewayServiceManagerActor actor , GatewayEventData data);
+        Task GameScoreUpdatedAsync(IGatewayServiceManagerActor actor , GatewayEventData data);
     }
 
-    public interface IGatewayServiceManagerActor : IActor, IActorEventPublisher<IGatewayServiceMaanagerEvents>
+    public interface IGatewayServiceManagerActor : IActor
     {
         Task OnHostOpenAsync(GatewayEventData data);
         Task OnHostingNodeReadyAsync();
+
+        Task<List<GatewayEventData>> GetProxiesAsync();
+        Task<DateTimeOffset> GetLastUpdatedAsync();
     }
 }

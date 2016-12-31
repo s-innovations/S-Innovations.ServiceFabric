@@ -31,14 +31,27 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
         {
            
         }
+        public Task<List<GatewayEventData>> GetProxiesAsync() => this.StateManager.GetStateAsync<List<GatewayEventData>>("proxyData");
+        
+        public Task<DateTimeOffset> GetLastUpdatedAsync() => this.StateManager.GetOrAddStateAsync("lastUpdated",DateTimeOffset.MinValue);
 
         public async Task OnHostOpenAsync(GatewayEventData data)
         {
             //ServiceProxy.Create<IGatewayNodeService>()
+            var dataKey = data.ForwardPath + data.BackendPath;
+            var proxies = await GetProxiesAsync();
 
-            var ev = GetEvent<IGatewayServiceMaanagerEvents>();
+            if (!proxies.Any(i => i.ForwardPath + i.BackendPath == dataKey))
+            {
+                proxies.Add(data);
 
-            ev.GameScoreUpdated(this, data);
+                await StateManager.SetStateAsync("lastUpdated", DateTimeOffset.UtcNow);
+
+                await StateManager.SetStateAsync("proxyData", proxies);
+                //await GetEvent<IGatewayServiceMaanagerEvents>().GameScoreUpdatedAsync(this, data);
+            }
+
+            
 
         }
 
@@ -55,9 +68,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
             // Any serializable object can be saved in the StateManager.
             // For more information, see https://aka.ms/servicefabricactorsstateserialization
 
-            //return this.StateManager.TryAddStateAsync("count", 0);
+            return this.StateManager.TryAddStateAsync("proxyData", new List<GatewayEventData>());
 
-            return base.OnActivateAsync();
+            //return base.OnActivateAsync();
         }
     }
 }
