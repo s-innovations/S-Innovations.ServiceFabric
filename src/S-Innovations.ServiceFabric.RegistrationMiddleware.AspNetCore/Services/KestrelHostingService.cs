@@ -29,7 +29,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
             where TStartup: class
         {
-            return container.WithKestrelHosting<KestrelHostingService<TStartup>>(serviceType, options);           
+            return container.WithKestrelHosting<KestrelHostingService<TStartup>,TStartup>(serviceType, options);           
         }
 
         public static IUnityContainer WithKestrelHosting<THostingService,TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
