@@ -21,7 +21,25 @@ using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
 namespace SInnovations.ServiceFabric.GatewayService.Services
 {
 
+    public static class NginxEx
+    {
+        public static IDictionary<string, List<GatewayEventData>> GroupByServerName(this List<GatewayEventData> proxies)
+        {
+            var servers = proxies.SelectMany(g =>
+                        (g.ServerName ?? FabricRuntime.GetNodeContext().IPAddressOrFQDN)
+                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(k => new { key = k, value = g }))
+                    .GroupBy(k => k.key).ToDictionary(k => k.Key, k => k.Select(v => v.value).ToList());
 
+            var singles = servers.Where(k => k.Value.Count > 1).ToDictionary(k => k.Key, v => v.Value);
+            foreach (var combine in servers.Where(k => k.Value.Count == 1).GroupBy(k => k.Value.First()))
+            {
+                singles.Add(string.Join(" ", combine.Select(k => k.Key)), new List<GatewayEventData> { combine.Key });
+            }
+
+            return singles;
+        }
+    }
     /// <summary>
     /// A specialized stateless service for hosting ASP.NET Core web apps.
     /// </summary>
@@ -57,7 +75,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             : base(new KestrelHostingServiceOptions
             {
                 ServiceEndpointName = "ServiceEndpoint1",
-                ReverseProxyPath = "/manage"
+                ReverseProxyLocation = "/manage"
             }, serviceContext)
         {
 
@@ -96,26 +114,37 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine("\tkeepalive_timeout  65;");
             sb.AppendLine("\tgzip  on;");
             {
-                sb.AppendLine("\tserver {");
-                {
-                    sb.AppendLine($"\t\tlisten       {endpoint.Port};");
-                    sb.AppendLine($"\t\tserver_name  {FabricRuntime.GetNodeContext().IPAddressOrFQDN};");
+                var proxies = await actor.GetProxiesAsync();
 
-                    foreach (var a in await actor.GetProxiesAsync())
+               
+
+                foreach (var serverGroup in proxies.GroupByServerName())
+                {
+                    var serverName = serverGroup.Key;
+
+                    sb.AppendLine("\tserver {");
                     {
-                        if (a.IPAddressOrFQDN == FabricRuntime.GetNodeContext().IPAddressOrFQDN)
+                        sb.AppendLine($"\t\tlisten       {endpoint.Port};");
+                        sb.AppendLine($"\t\tserver_name  {serverName};");
+
+                        foreach (var a in serverGroup.Value)
                         {
-                            WriteProxyPassLocation(2, a.ForwardPath, a.BackendPath, sb);
+                            if (a.IPAddressOrFQDN == FabricRuntime.GetNodeContext().IPAddressOrFQDN)
+                            {
+                                WriteProxyPassLocation(2, a.ReverseProxyLocation, a.BackendPath, sb);
+                            }
                         }
                     }
-
+                    sb.AppendLine("\t}");
                 }
-                sb.AppendLine("\t}");
+
             }
             sb.AppendLine("}");
 
             File.WriteAllText("nginx.conf", sb.ToString());
         }
+
+        
 
         private static StringBuilder WriteMimeTypes(StringBuilder sb, string name)
         {
@@ -133,11 +162,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         }
 
-        private static void WriteProxyPassLocation(int level, string pathPrefix, string url, StringBuilder sb)
+        private static void WriteProxyPassLocation(int level, string location, string url, StringBuilder sb)
         {
 
             var tabs = string.Join("", Enumerable.Range(0, level + 1).Select(r => "\t"));
-            sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {pathPrefix} {{");
+            sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
                 sb.AppendLine($"{tabs}proxy_pass {url};");
                 sb.AppendLine($"{tabs}proxy_set_header Upgrade $http_upgrade;");
@@ -150,7 +179,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Server     $host;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Proto      $scheme;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Path       $request_uri;");
-                sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   {pathPrefix};");
+                if (!location.Trim().StartsWith("~"))
+                    sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   {location};");
 
                 sb.AppendLine($"{tabs}proxy_cache_bypass $http_upgrade;");
             }
@@ -215,11 +245,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             //await base.RunAsync(cancellationToken);
 
 
-          //  await gateway.SubscribeAsync<IGatewayServiceMaanagerEvents>(this);
+            //  await gateway.SubscribeAsync<IGatewayServiceMaanagerEvents>(this);
 
             //    await gateway.OnHostingNodeReadyAsync();
 
-            
+
             await WriteConfigAsync(gateway);
 
             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
@@ -244,7 +274,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                     launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
                 }
-              
+
             }
 
 

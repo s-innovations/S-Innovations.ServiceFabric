@@ -18,21 +18,28 @@ using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
-    
-    public class KestrelHostingServiceOptions{
-        public string ReverseProxyPath { get;  set; }
+    public class GatewayOptions
+    {
+        public string ServerName { get; set; }
+
+    }
+    public class KestrelHostingServiceOptions
+    {
+        public string ReverseProxyLocation { get; set; }
         public string ServiceEndpointName { get; set; }
+
+        public GatewayOptions GatewayOptions { get; set; } = new GatewayOptions();
     }
 
     public static class KestrelHostingExtensions
     {
         public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
-            where TStartup: class
+            where TStartup : class
         {
-            return container.WithKestrelHosting<KestrelHostingService<TStartup>,TStartup>(serviceType, options);           
-        }       
+            return container.WithKestrelHosting<KestrelHostingService<TStartup>, TStartup>(serviceType, options);
+        }
 
-        public static IUnityContainer WithKestrelHosting<THostingService,TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
+        public static IUnityContainer WithKestrelHosting<THostingService, TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
           where THostingService : KestrelHostingService<TStartup>
           where TStartup : class
         {
@@ -47,7 +54,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
     public class KestrelHostingService<TStartUp> : StatelessService where TStartUp : class
     {
         protected KestrelHostingServiceOptions Options { get; set; }
-        public KestrelHostingService(KestrelHostingServiceOptions options , StatelessServiceContext serviceContext)
+        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext)
             : base(serviceContext)
         {
             Options = options;
@@ -71,17 +78,33 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             return new ServiceInstanceListener[]
             {
                 new ServiceInstanceListener(serviceContext =>
+
                     new KestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
                     {
-                       // ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
-                       
+                      var context =serviceContext.CodePackageActivationContext;
+                        // ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
+                        var config = context.GetConfigurationPackageObject("Config");
 
-                        return new WebHostBuilder().UseKestrel()
+                        var builder=new WebHostBuilder().UseKestrel()
                                     .ConfigureServices(this.ConfigureServices)
                                     .UseContentRoot(Directory.GetCurrentDirectory())
-                                    .UseStartup<TStartUp>()
-                                    .UseUrls(url)
-                                    .Build();
+                                    .UseStartup<TStartUp>();
+
+                        if(config.Settings.Sections.Contains("Environment"))
+                        {
+                            //http://stackoverflow.com/questions/39109666/asp-net-core-environment-variables-not-being-used-when-debugging-through-a-servi
+
+                            var environments =config.Settings.Sections["Environment"];
+                            if(environments.Parameters.Contains("ASPNETCORE_ENVIRONMENT"))
+                            {
+                                builder = builder.UseEnvironment(environments.Parameters["ASPNETCORE_ENVIRONMENT"].Value);
+
+                            }
+
+                        }
+                        return builder
+                                .UseUrls(url)
+                                .Build();
                     }))
             };
         }
@@ -90,18 +113,19 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         {
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
             var endpoint = FabricRuntime.GetActivationContext().GetEndpoint(Options.ServiceEndpointName);
-         
+
             await base.OnOpenAsync(cancellationToken);
-            try
+
+
+            await gateway.OnHostOpenAsync(new GatewayEventData
             {
+                ServerName = Options.GatewayOptions.ServerName,
+                ReverseProxyLocation = Options.ReverseProxyLocation ?? "/",
+                IPAddressOrFQDN = FabricRuntime.GetNodeContext().IPAddressOrFQDN,
+                BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}"
+            }); //(Options.ReverseProxyPath ?? "/", $"{endpoint.Protocol})://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}");
 
-                await gateway.OnHostOpenAsync(new GatewayEventData { ForwardPath = Options.ReverseProxyPath ?? "/", IPAddressOrFQDN = FabricRuntime.GetNodeContext().IPAddressOrFQDN, BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}" }); //(Options.ReverseProxyPath ?? "/", $"{endpoint.Protocol})://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}");
 
-            }
-            catch (Exception ex)
-            {
-
-            }
-         }
+        }
     }
 }

@@ -17,11 +17,14 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
     public class GatewayEventData
     {
         [DataMember]
-        public string ForwardPath { get; set; }
+        public string ReverseProxyLocation { get; set; }
         [DataMember]
         public string BackendPath { get; set; }
         [DataMember]
         public string IPAddressOrFQDN { get; set; }
+
+        [DataMember]
+        public string ServerName { get; set; }
     }
 
     public interface IGatewayServiceMaanagerEvents : IActorEvents

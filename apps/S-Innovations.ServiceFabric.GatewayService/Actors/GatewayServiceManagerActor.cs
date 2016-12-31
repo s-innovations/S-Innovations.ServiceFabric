@@ -38,10 +38,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
         public async Task OnHostOpenAsync(GatewayEventData data)
         {
             //ServiceProxy.Create<IGatewayNodeService>()
-            var dataKey = data.ForwardPath + data.BackendPath;
+            var dataKey = data.ReverseProxyLocation + data.BackendPath;
             var proxies = await GetProxiesAsync();
 
-            if (!proxies.Any(i => i.ForwardPath + i.BackendPath == dataKey))
+            if (!proxies.Any(i => i.ReverseProxyLocation + i.BackendPath == dataKey))
             {
                 proxies.Add(data);
 
