@@ -186,8 +186,29 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             }
         }
 
-       
-        
+
+        protected override Task OnCloseAsync(CancellationToken cancellationToken)
+        {
+            if (isNginxRunning())
+                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+
+
+            return base.OnCloseAsync(cancellationToken);
+        }
+
+        protected override Task OnOpenAsync(CancellationToken cancellationToken)
+        {
+            return base.OnOpenAsync(cancellationToken);
+        }
+        protected override void OnAbort()
+        {
+            if (isNginxRunning())
+                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+
+          
+
+            base.OnAbort();
+        }
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
 
