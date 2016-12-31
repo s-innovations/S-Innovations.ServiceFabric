@@ -186,7 +186,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             }
         }
 
-         
+       
         
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
@@ -212,7 +212,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             while (true)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    launchNginxProcess("-s quit");
+                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
