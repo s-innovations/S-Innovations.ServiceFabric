@@ -16,13 +16,13 @@
     "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore": "1.0.1",
     "Unity": "4.0.1",
     "Microsoft.ServiceFabric.Actors": "2.4.145",
-    "S-Innovations.LetsEncrypt.DnsMadeEasyChallenger": "1.0.0-pre-2017010103",
+    "S-Innovations.LetsEncrypt.DnsMadeEasyChallenger": "1.0.0-*",
     "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8",
     "Microsoft.AspNetCore.DataProtection.Abstractions": "1.1.0",
     "Microsoft.AspNetCore.DataProtection.Extensions": "1.1.0",
     "WindowsAzure.Storage": "8.0.0",
     "Microsoft.Extensions.Configuration.AzureKeyVault": "1.0.0",
-    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.0-preview1-final"
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.0"
   },
 
   "tools": {
