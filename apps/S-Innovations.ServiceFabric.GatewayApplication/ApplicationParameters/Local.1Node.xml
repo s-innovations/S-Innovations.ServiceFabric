@@ -2,5 +2,8 @@
 <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/S-Innovations.ServiceFabric.GatewayApplication" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="GatewayService_InstanceCount" Value="1" />
+    <Parameter Name="AzureADServicePrincipal" Value="MIICLwYJKoZIhvcNAQcDoIICIDCCAhwCAQAxggFGMIIBQgIBADAqMBYxFDASBgNVBAMTC2VhcnRobWxjb3JlAhB+0UGGzMS5pUnUFCuKVRcoMA0GCSqGSIb3DQEBAQUABIIBAGt53tMpXbwWkU66I5+dTPjF+lVBCQCUynjVx4/IjvwRrM2MDIx4Q/aRn8c2kT4mEWsr00Gnkb1ZpaTZlf6PN+085l5g9MwHmfgu4tdM182V8lzqudwVyXuTEy9YYE25WNPBBtL8fL47ilz73jvAtnuO1qBYpp1L+ZpXZ/63yx3UjK8j8i+evbjlfxmSzXg9fzzpGg0rKAh5KPWP0hNYOoOumc6a4ElqK7PkhWcthcJMovfqAORFjHf+aTI1B0YycUsq6yZDExeZbb2v5vQhXylEu6oRH+iMiw9NsJXwf+cOJbuBnjQS93xdmSzKmr9nr+AJ8Pnl+LU9AajXmYwszRQwgcwGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIYhUJdxJT7KeAgahByuVm8WRCMpfRuXOfptd/k9HCTdLc9T0hd5bsWK+g/qnrCF9JSkwIeNItd2Ip7M7ljni1doK/+6GN8uD1gLXfPSX0WDex91vScxPBLqmtQr2t0haBWbbqsP2B3F4ED+G89hnte6OMIoSF6FPUpFr/DvpLIdDIPQ/NUZ+NuHQFYUVMtF3vMRuyHFpbMYz6InjayG3C/R+JcAd/gBS7DxqRPu+627+dOPI=" />
+    <Parameter Name="TenantId" Value="802626c6-0f5c-4293-a8f5-198ecd481fe3" />
+    <Parameter Name="ApplicationStorageAccountId" Value="/subscriptions/1626d2da-4051-4674-9d4c-57ce23d967a3/resourceGroups/earthml-core/providers/Microsoft.Storage/storageAccounts/k3ci5rfk6j3i43" />
   </Parameters>
 </Application>

@@ -4,13 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.WindowsAzure.Storage;
+using SInnovations.LetsEncrypt;
 using SInnovations.ServiceFabric.Gateway.Actors;
+using SInnovations.ServiceFabric.Gateway.Model;
+using SInnovations.ServiceFabric.GatewayService.Configuration;
+using SInnovations.ServiceFabric.GatewayService.Model;
 
 namespace SInnovations.ServiceFabric.GatewayService.Actors
 {
 
-    
+
     /// <remarks>
     /// This class represents an actor.
     /// Every ActorID maps to an instance of this class.
@@ -21,56 +25,165 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
     [ActorService()]
-    public class GatewayServiceManagerActor : Actor, IGatewayServiceManagerActor
+    public class GatewayServiceManagerActor : Actor, IGatewayServiceManagerActor, IRemindable
     {
-        public GatewayServiceManagerActor(ActorService actorService, ActorId actorId) : base(actorService,actorId)
+        private const string REMINDER_NAME = "processSslQueue";
+        private const string CERT_QUEUE_NAME = "certQueue";
+        private const string STATE_LAST_UPDATED_NAME = "lastUpdated";
+        private const string STATE_PROXY_DATA_NAME = "proxyData";
+
+        private readonly StorageConfiguration Storage;
+        private readonly LetsEncryptService letsEncrypt;
+
+        private CloudStorageAccount StorageAccount;
+
+        public GatewayServiceManagerActor(
+            ActorService actorService,
+            ActorId actorId,
+            StorageConfiguration storage,
+            LetsEncryptService letsEncrypt)
+            : base(actorService, actorId)
         {
+            Storage = storage;
+            this.letsEncrypt = letsEncrypt;
         }
 
-        public async Task OnHostingNodeReadyAsync()
+
+
+        public Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync() => StateManager.GetStateAsync<List<GatewayServiceRegistrationData>>("proxyData");
+
+        public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
+
+
+        public async Task<bool> IsCertificateAvaibleAsync(string hostname, SslOptions options)
         {
-           
+
+            var certInfo = await StateManager.TryGetStateAsync<CertGenerationState>($"cert_{hostname}");
+
+            if (certInfo.HasValue)
+                return certInfo.Value.Completed;
+
+
+
+            await StateManager.AddStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options });
+
+            await AddHostnameToQueue(hostname);
+
+            await RegisterReminderAsync(REMINDER_NAME, new byte[0],
+               TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
+
+            return false;
+
         }
-        public Task<List<GatewayEventData>> GetProxiesAsync() => this.StateManager.GetStateAsync<List<GatewayEventData>>("proxyData");
-        
-        public Task<DateTimeOffset> GetLastUpdatedAsync() => this.StateManager.GetOrAddStateAsync("lastUpdated",DateTimeOffset.MinValue);
 
-        public async Task OnHostOpenAsync(GatewayEventData data)
+       
+        public async Task ReceiveReminderAsync(string reminderName, byte[] context, TimeSpan dueTime, TimeSpan period)
         {
-            //ServiceProxy.Create<IGatewayNodeService>()
-            var dataKey = data.ReverseProxyLocation + data.BackendPath;
-            var proxies = await GetProxiesAsync();
-
-            if (!proxies.Any(i => i.ReverseProxyLocation + i.BackendPath == dataKey))
+            if (reminderName.Equals(REMINDER_NAME))
             {
-                proxies.Add(data);
 
-                await StateManager.SetStateAsync("lastUpdated", DateTimeOffset.UtcNow);
+                var certs = StorageAccount.CreateCloudBlobClient().GetContainerReference("certs");
+                await certs.CreateIfNotExistsAsync();
 
-                await StateManager.SetStateAsync("proxyData", proxies);
-                //await GetEvent<IGatewayServiceMaanagerEvents>().GameScoreUpdatedAsync(this, data);
+
+
+                var store = await StateManager.GetStateAsync<List<string>>(CERT_QUEUE_NAME).ConfigureAwait(false);
+                var hostname = store.First();
+
+                var certBlob = certs.GetBlockBlobReference($"{hostname}.crt");
+                var keyBlob = certs.GetBlockBlobReference($"{hostname}.key");
+
+
+                var certInfo = await StateManager.GetStateAsync<CertGenerationState>($"cert_{hostname}");
+
+
+                if (!(await certBlob.ExistsAsync() && await keyBlob.ExistsAsync()))
+                {
+
+                    
+
+                    try
+                    {
+
+                        var cert = await letsEncrypt.GenerateCertPairAsync(new GenerateCertificateRequestOptions
+                        {
+                            DnsIdentifier = certInfo.HostName,
+                            SignerEmail = certInfo.SslOptions.SignerEmail
+                        });
+
+
+                        await certBlob.UploadFromByteArrayAsync(cert.Item2, 0, cert.Item2.Length);
+                        await keyBlob.UploadFromByteArrayAsync(cert.Item1, 0, cert.Item1.Length);
+
+                        certInfo.Completed = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        await certs.GetBlockBlobReference($"{hostname}.err").UploadTextAsync(ex.ToString());
+
+                    }
+
+                    
+
+
+                }
+                else
+                {
+                    certInfo.Completed = true;
+                }
+
+                await StateManager.SetStateAsync($"cert_{hostname}", certInfo);
+
+                var missing = store.Skip(1).ToList();
+                await StateManager.SetStateAsync(CERT_QUEUE_NAME, missing);
+                if (missing.Any())
+                {
+                    await RegisterReminderAsync(
+                      REMINDER_NAME, new byte[0],
+                      TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
+                }
+
+                await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
             }
 
-            
+        }
+
+        public async Task RegisterGatewayServiceAsync(GatewayServiceRegistrationData data)
+        {
+
+            var proxies = await GetGatewayServicesAsync();
+
+            var found = proxies.FirstOrDefault(i => i.Key == data.Key);
+            if (found == null)
+            {
+                proxies.Add(data);
+            }
+            else
+            {
+                proxies[proxies.IndexOf(found)] = data;
+            }
+
+            await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
+            await StateManager.SetStateAsync(STATE_PROXY_DATA_NAME, proxies);
 
         }
 
-        /// <summary>
-        /// This method is called whenever an actor is activated.
-        /// An actor is activated the first time any of its methods are invoked.
-        /// </summary>
-        protected override Task OnActivateAsync()
+        private async Task AddHostnameToQueue(string hostname)
         {
-            //  ActorEventSource.Current.ActorMessage(this, "Actor activated.");
+            var store = await StateManager.GetOrAddStateAsync(CERT_QUEUE_NAME, new List<string> { }).ConfigureAwait(false);
+            store.Add(hostname);
+            await StateManager.SetStateAsync(CERT_QUEUE_NAME, store);
+        }
 
-            // The StateManager is this actor's private state store.
-            // Data stored in the StateManager will be replicated for high-availability for actors that use volatile or persisted state storage.
-            // Any serializable object can be saved in the StateManager.
-            // For more information, see https://aka.ms/servicefabricactorsstateserialization
 
-            return this.StateManager.TryAddStateAsync("proxyData", new List<GatewayEventData>());
+        protected override async Task OnActivateAsync()
+        {
 
-            //return base.OnActivateAsync();
+            StorageAccount = await Storage.GetApplicationStorageAccountAsync();
+
+            await this.StateManager.TryAddStateAsync(STATE_PROXY_DATA_NAME, new List<GatewayServiceRegistrationData>());
+
+            await base.OnActivateAsync();
         }
     }
 }

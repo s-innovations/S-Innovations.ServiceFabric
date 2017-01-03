@@ -8,9 +8,10 @@
     <Parameter Name="CredentialType" Value="None" />
   </Section>
   <!-- Add your custom configuration sections and parameters here -->
-  <!--
-  <Section Name="MyConfigSection">
-    <Parameter Name="MyParameter" Value="Value1" />
+  <Section Name="AzureResourceManager">
+    <Parameter Name="AzureADServicePrincipal" IsEncrypted="true" MustOverride="true" Value="" />
+    <Parameter Name="TenantId"  MustOverride="true" Value="" />
+    <Parameter Name="ApplicationStorageAccountId"  MustOverride="true" Value="" />
+    <Parameter Name="Azure.KeyVault.Uri" MustOverride="true" Value=""/>
   </Section>
-  -->
 </Settings>

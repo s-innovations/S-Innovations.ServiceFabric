@@ -1,44 +1,57 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.ServiceFabric.Services.Communication.Runtime;
-using Microsoft.ServiceFabric.Services.Runtime;
-using System.Collections.Generic;
-using System.Fabric;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System;
-using System.Text;
-using System.Linq;
-using SInnovations.ServiceFabric.GatewayService.Services;
-using Serilog;
-using Microsoft.Extensions.Logging;
+﻿using System.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Practices.Unity;
-using SInnovations.ServiceFabric.Unity;
+using Serilog;
+using SInnovations.LetsEncrypt;
 using SInnovations.ServiceFabric.GatewayService.Actors;
+using SInnovations.ServiceFabric.GatewayService.Configuration;
+using SInnovations.ServiceFabric.GatewayService.Services;
+using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
+
+
+
+
     public class Program
     {
-        // Entry point for the application.
+        
         public static void Main(string[] args)
         {
             var log = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-              //  .WriteTo.Trace()
                 .CreateLogger();
 
-
+            
             using (var container = new UnityContainer().AsFabricContainer())
             {
-                var loggerfac = new LoggerFactory() as ILoggerFactory;
-                loggerfac.AddSerilog();
-                container.RegisterInstance(loggerfac);
+                container.AddOptions();
+                container.ConfigureLogging(new LoggerFactory().AddSerilog());
+
+                container.ConfigureApplicationStorage();
+
+
+                var keyvaultINfo = container.Resolve<KeyVaultSecretManager>();
+                var configuration = new ConfigurationBuilder()
+                    .AddAzureKeyVault(keyvaultINfo.KeyVaultUrl, keyvaultINfo.Client, keyvaultINfo)
+                    .Build(container);        
+
+                container.Configure<KeyVaultOptions>("KeyVault");
+
+                container.WithLetsEncryptService(new LetsEncryptServiceOptions
+                {
+                    BaseUri = "https://acme-v01.api.letsencrypt.org"
+                });
 
                 container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
                 container.WithActor<GatewayServiceManagerActor>();
+
+
+                var test = container.Resolve<StorageConfiguration>();
+                var account = test.GetApplicationStorageAccountAsync().GetAwaiter().GetResult();
               
                 Thread.Sleep(Timeout.Infinite);
             }

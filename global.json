@@ -1,7 +1,8 @@
 {
   "projects": [
-    "src",   
-     "apps",
-    "C:/dev/sinnovations/S-Innovations.ServiceFabric.Unity/src"
+    "src",
+    "apps",
+    "C:/dev/sinnovations/S-Innovations.ServiceFabric.Unity/src",
+    "C:/dev/sinnovations/S-Innovations.LetsEncrypt/src"
   ]
 }

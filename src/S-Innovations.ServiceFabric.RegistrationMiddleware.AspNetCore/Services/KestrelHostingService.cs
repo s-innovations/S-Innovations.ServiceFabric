@@ -14,18 +14,22 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using SInnovations.ServiceFabric.Gateway.Actors;
+using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
+    
     public class GatewayOptions
     {
+        public string Key { get; set; }
+        public string ReverseProxyLocation { get; set; }
         public string ServerName { get; set; }
-
+        public SslOptions Ssl { get; set; } = new SslOptions();
     }
     public class KestrelHostingServiceOptions
     {
-        public string ReverseProxyLocation { get; set; }
+      //  public string ReverseProxyLocation { get; set; }
         public string ServiceEndpointName { get; set; }
 
         public GatewayOptions GatewayOptions { get; set; } = new GatewayOptions();
@@ -112,19 +116,20 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
         {
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
-            var endpoint = FabricRuntime.GetActivationContext().GetEndpoint(Options.ServiceEndpointName);
-
+            var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
+           
             await base.OnOpenAsync(cancellationToken);
 
 
-            await gateway.OnHostOpenAsync(new GatewayEventData
+            await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
             {
+                Key = $"{Options.GatewayOptions.Key}-{Context.NodeContext.IPAddressOrFQDN}",
+                IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
                 ServerName = Options.GatewayOptions.ServerName,
-                ReverseProxyLocation = Options.ReverseProxyLocation ?? "/",
-                IPAddressOrFQDN = FabricRuntime.GetNodeContext().IPAddressOrFQDN,
-                BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}"
-            }); //(Options.ReverseProxyPath ?? "/", $"{endpoint.Protocol})://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}");
-
+                ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
+                Ssl = Options.GatewayOptions.Ssl,
+                BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}"
+            }); 
 
         }
     }

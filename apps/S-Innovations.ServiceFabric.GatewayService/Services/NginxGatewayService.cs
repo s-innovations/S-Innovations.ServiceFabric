@@ -15,7 +15,10 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Microsoft.WindowsAzure.Storage;
 using SInnovations.ServiceFabric.Gateway.Actors;
+using SInnovations.ServiceFabric.Gateway.Model;
+using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
 
 namespace SInnovations.ServiceFabric.GatewayService.Services
@@ -23,19 +26,46 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
     public static class NginxEx
     {
-        public static IDictionary<string, List<GatewayEventData>> GroupByServerName(this List<GatewayEventData> proxies)
+        public static IDictionary<string, List<GatewayServiceRegistrationData>> GroupByServerName(this List<GatewayServiceRegistrationData> proxies)
         {
+            
             var servers = proxies.SelectMany(g =>
                         (g.ServerName ?? FabricRuntime.GetNodeContext().IPAddressOrFQDN)
                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(k => new { key = k, value = g }))
-                    .GroupBy(k => k.key).ToDictionary(k => k.Key, k => k.Select(v => v.value).ToList());
+                        .Select(k => new { sslKey=k+g.Ssl, key = k, value = g }))
+                    .GroupBy(k => k.sslKey).ToDictionary(k => k.Key, k => new { hostname = k.First().key, locations = k.Select(v => v.value).ToList() });
 
-            var singles = servers.Where(k => k.Value.Count > 1).ToDictionary(k => k.Key, v => v.Value);
-            foreach (var combine in servers.Where(k => k.Value.Count == 1).GroupBy(k => k.Value.First()))
+
+
+            var singles = servers.Where(k => k.Value.locations.Count > 1)
+                .ToDictionary(k => k.Value.hostname, v => v.Value.locations);
+
+                        
+            foreach (var combine in servers.Where(k => k.Value.locations.Count == 1).GroupBy(k => k.Value.locations.First()))
             {
-                singles.Add(string.Join(" ", combine.Select(k => k.Key)), new List<GatewayEventData> { combine.Key });
+                singles.Add(string.Join(" ", combine.Select(k => k.Value.hostname)), new List<GatewayServiceRegistrationData> { combine.Key });
+            }   
+
+            foreach(var test in singles.ToArray())
+            {
+                if (test.Value.Any(k => k.Ssl.Enabled) && test.Key.Contains(' '))
+                {
+                    foreach(var hostname in test.Key.Split(' '))
+                    {
+                        if (singles.ContainsKey(hostname))
+                        {
+                            singles[hostname].AddRange(test.Value);
+                        }
+                        else
+                        {
+                            singles.Add(hostname, test.Value);
+                        }
+                    }
+
+                    singles.Remove(test.Key);
+                }
             }
+            
 
             return singles;
         }
@@ -43,47 +73,34 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
     /// <summary>
     /// A specialized stateless service for hosting ASP.NET Core web apps.
     /// </summary>
-    public sealed class NginxGatewayService : KestrelHostingService<Startup>, IGatewayNodeService
+    public sealed class NginxGatewayService : KestrelHostingService<Startup>
     {
-        // private Dictionary<string, GatewayEventData> _proxies = new Dictionary<string, GatewayEventData>();
-
-        //public async Task GameScoreUpdatedAsync(IGatewayServiceManagerActor actor, GatewayEventData data)
-        //{
-        //    try
-        //    {
-
-
-        //        await WriteConfigAsync(actor);
-        //        //launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
-        //        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
-        //        //    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //    }
-        //}
+        
 
 
         private string nginxProcessName = "";
+        
+        private readonly StorageConfiguration Storage;
+        private CloudStorageAccount storageAccount;
 
-
-        // private IWebHost _webHost;
-
-        public NginxGatewayService(StatelessServiceContext serviceContext)
+        public NginxGatewayService(StatelessServiceContext serviceContext, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
                 ServiceEndpointName = "ServiceEndpoint1",
-                ReverseProxyLocation = "/manage"
+                GatewayOptions = new GatewayOptions
+                {
+                    Key = "NGINX-MANAGER",
+                    ReverseProxyLocation = "/manage",
+                }
+
             }, serviceContext)
         {
-
+            Storage = storage;
         }
 
         #region StatelessService
 
-
+      
 
         private bool isNginxRunning()
         {
@@ -99,10 +116,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         private async Task WriteConfigAsync(IGatewayServiceManagerActor actor)
         {
             var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint");
-            string serverUrl = $"{endpoint.Protocol}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint.Port}";
-            //  var endpoint1 = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint1");
-            // string serverUrl1 = $"{endpoint1.Protocol}://{FabricRuntime.GetNodeContext().IPAddressOrFQDN}:{endpoint1.Port}";
-
+            var sslEndpoint = FabricRuntime.GetActivationContext().GetEndpoint("SslServiceEndpoint");
+         
             var sb = new StringBuilder();
 
             sb.AppendLine("worker_processes  1;");
@@ -114,18 +129,52 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine("\tkeepalive_timeout  65;");
             sb.AppendLine("\tgzip  on;");
             {
-                var proxies = await actor.GetProxiesAsync();
+                var proxies = await actor.GetGatewayServicesAsync();
 
-               
+
 
                 foreach (var serverGroup in proxies.GroupByServerName())
                 {
                     var serverName = serverGroup.Key;
+                    var sslOn = serverName != "localhost" && serverGroup.Value.Any(k => k.Ssl.Enabled);
+                    
+                    if (sslOn)
+                    {
+                        sslOn = await actor.IsCertificateAvaibleAsync(serverName, serverGroup.Value.First().Ssl);
+                    }
+                   
 
                     sb.AppendLine("\tserver {");
                     {
                         sb.AppendLine($"\t\tlisten       {endpoint.Port};");
+                        if (sslOn)
+                        {
+                            sb.AppendLine($"\t\tlisten       {sslEndpoint.Port} ssl;");
+                        }
+
                         sb.AppendLine($"\t\tserver_name  {serverName};");
+                        sb.AppendLine();
+
+                        if (sslOn)
+                        {
+
+                            var certs = storageAccount.CreateCloudBlobClient().GetContainerReference("certs");
+
+                            var certBlob = certs.GetBlockBlobReference($"{serverName}.crt");
+                            var keyBlob = certs.GetBlockBlobReference($"{serverName}.key");
+
+
+                            Directory.CreateDirectory(Path.Combine(Context.CodePackageActivationContext.WorkDirectory, "letsencrypt"));
+
+                            await certBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt", FileMode.Create);
+                            await keyBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key", FileMode.Create);
+
+
+                            sb.AppendLine($"\t\tssl_certificate {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt;");
+                            sb.AppendLine($"\t\t ssl_certificate_key {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key;");
+
+                        }
+                       
 
                         foreach (var a in serverGroup.Value)
                         {
@@ -134,6 +183,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                                 WriteProxyPassLocation(2, a.ReverseProxyLocation, a.BackendPath, sb);
                             }
                         }
+
+                        
                     }
                     sb.AppendLine("\t}");
                 }
@@ -144,7 +195,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             File.WriteAllText("nginx.conf", sb.ToString());
         }
 
-        
+
 
         private static StringBuilder WriteMimeTypes(StringBuilder sb, string name)
         {
@@ -240,16 +291,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
 
+            storageAccount = await Storage.GetApplicationStorageAccountAsync();
 
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
-            //await base.RunAsync(cancellationToken);
-
-
-            //  await gateway.SubscribeAsync<IGatewayServiceMaanagerEvents>(this);
-
-            //    await gateway.OnHostingNodeReadyAsync();
-
-
+            
             await WriteConfigAsync(gateway);
 
             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");

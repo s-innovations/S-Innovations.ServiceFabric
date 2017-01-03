@@ -2,13 +2,29 @@
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="S-Innovations.ServiceFabric.GatewayApplication" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="GatewayService_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="AzureADServicePrincipal" DefaultValue="" />
+    <Parameter Name="TenantId" DefaultValue="" />
+    <Parameter Name="ApplicationStorageAccountId" DefaultValue="" />
+    <Parameter Name="AzureResourceManagerCertThumbrint" DefaultValue="3B528F30CF0813FAA9232C1B12ACA9211E2AF2B7" />
+    <Parameter Name="Azure.KeyVault.Uri" DefaultValue="https://earthml-core-k3ci.vault.azure.net/" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="S-Innovations.ServiceFabric.GatewayServicePkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="AzureResourceManager">
+            <Parameter Name="AzureADServicePrincipal" Value="[AzureADServicePrincipal]" IsEncrypted="true" />
+            <Parameter Name="TenantId" Value="[TenantId]" />
+            <Parameter Name="ApplicationStorageAccountId" Value="[ApplicationStorageAccountId]" />
+            <Parameter Name="Azure.KeyVault.Uri" Value="[Azure.KeyVault.Uri]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
     <Policies>
       <RunAsPolicy CodePackageRef="Code" UserRef="Admin" EntryPointType="All" />
     </Policies>
@@ -32,6 +48,7 @@
   </DefaultServices>
   <Principals>
     <Users>
+      <User Name="Service1" AccountType="NetworkService" />
       <User Name="Admin">
         <MemberOf>
           <SystemGroup Name="Administrators" />
@@ -39,4 +56,12 @@
       </User>
     </Users>
   </Principals>
+  <Policies>
+    <SecurityAccessPolicies>
+      <SecurityAccessPolicy ResourceRef="MyCert" PrincipalRef="Service1" ResourceType="Certificate" />
+    </SecurityAccessPolicies>
+  </Policies>
+  <Certificates>
+    <SecretsCertificate X509FindValue="[AzureResourceManagerCertThumbrint]" Name="MyCert" />
+  </Certificates>
 </ApplicationManifest>
