@@ -37,7 +37,9 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RegistrationMiddleware.Owin
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore", "src\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.xproj", "{9CDC0E92-36CA-4014-B503-17E077F6A2A2}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.Unity", "..\S-Innovations.ServiceFabric.Unity\src\S-Innovations.ServiceFabric.Unity\S-Innovations.ServiceFabric.Unity.xproj", "{336E79B3-41AF-46FF-978E-B74A7F9E075E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Storage", "Storage", "{A976CAEE-2F6C-4D09-8567-D4C3E9484556}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.Storage", "src\S-Innovations.ServiceFabric.Storage\S-Innovations.ServiceFabric.Storage.xproj", "{E7A3FC26-59C6-4598-A847-558A94033653}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +87,14 @@ Global
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|x64.ActiveCfg = Release|Any CPU
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2}.Release|x64.Build.0 = Release|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Debug|x64.Build.0 = Debug|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|x64.ActiveCfg = Release|Any CPU
-		{336E79B3-41AF-46FF-978E-B74A7F9E075E}.Release|x64.Build.0 = Release|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Debug|x64.Build.0 = Debug|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Release|x64.ActiveCfg = Release|Any CPU
+		{E7A3FC26-59C6-4598-A847-558A94033653}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,5 +106,6 @@ Global
 		{E1DD588D-46C9-4FCA-A161-FCC1E7E275D7} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
 		{8F936D3B-CA28-4160-8181-1FE00C2B29E4} = {1323A766-DD9B-46E8-9A0E-C45DDF252BBC}
 		{9CDC0E92-36CA-4014-B503-17E077F6A2A2} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
+		{E7A3FC26-59C6-4598-A847-558A94033653} = {A976CAEE-2F6C-4D09-8567-D4C3E9484556}
 	EndGlobalSection
 EndGlobal

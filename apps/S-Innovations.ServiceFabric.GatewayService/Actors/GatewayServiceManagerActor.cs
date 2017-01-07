@@ -10,6 +10,7 @@ using SInnovations.ServiceFabric.Gateway.Actors;
 using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.GatewayService.Model;
+using SInnovations.ServiceFabric.Storage.Configuration;
 
 namespace SInnovations.ServiceFabric.GatewayService.Actors
 {

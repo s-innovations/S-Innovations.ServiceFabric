@@ -8,6 +8,8 @@ using SInnovations.LetsEncrypt;
 using SInnovations.ServiceFabric.GatewayService.Actors;
 using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.GatewayService.Services;
+using SInnovations.ServiceFabric.Storage.Configuration;
+using SInnovations.ServiceFabric.Storage.Extensions;
 using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.GatewayService
@@ -50,8 +52,7 @@ namespace SInnovations.ServiceFabric.GatewayService
                 container.WithActor<GatewayServiceManagerActor>();
 
 
-                var test = container.Resolve<StorageConfiguration>();
-                var account = test.GetApplicationStorageAccountAsync().GetAwaiter().GetResult();
+             
               
                 Thread.Sleep(Timeout.Infinite);
             }

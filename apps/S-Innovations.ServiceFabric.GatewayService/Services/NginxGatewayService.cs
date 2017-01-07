@@ -20,6 +20,7 @@ using SInnovations.ServiceFabric.Gateway.Actors;
 using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
+using SInnovations.ServiceFabric.Storage.Configuration;
 
 namespace SInnovations.ServiceFabric.GatewayService.Services
 {
@@ -91,6 +92,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 {
                     Key = "NGINX-MANAGER",
                     ReverseProxyLocation = "/manage",
+                    ServerName = "www.earthml.com local.earthml" 
                 }
 
             }, serviceContext)
