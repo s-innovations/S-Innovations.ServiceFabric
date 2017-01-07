@@ -15,7 +15,7 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
         {
 
             Console.WriteLine("Hello World");
-
+#if NET452
             Console.WriteLine(Directory.GetCurrentDirectory());
             //C:\Users\pks\.nuget\packages\.tools\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil
             Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
@@ -67,6 +67,7 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
             Console.WriteLine();
             Console.Write("Process ended... shutting down host");
             Thread.Sleep(1000);
+#endif
         }
 
         /// <summary>
