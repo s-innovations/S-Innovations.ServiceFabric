@@ -4,7 +4,7 @@
   "dependencies": {
     "Microsoft.AspNetCore.DataProtection.Abstractions": "1.1.0",
     "Microsoft.AspNetCore.DataProtection.Extensions": "1.1.0",
-    "Microsoft.Extensions.Logging.Abstractions": "1.2.0-preview1-22722",
+    "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
     "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8",
     "Microsoft.ServiceFabric": "5.4.145",
     "S-Innovations.ServiceFabric.Unity": "1.0.0-*",
