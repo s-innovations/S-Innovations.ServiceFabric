@@ -10,140 +10,7 @@ using Microsoft.DotNet.ProjectModel;
 
 namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
 {
-    /// <summary>
-    /// A class which encapsulates logic needed to forward arguments from the current process to another process
-    /// invoked with the dotnet.exe host.
-    /// </summary>
-    public class ForwardingApp
-    {
-        private const string s_hostExe = "dotnet";
-
-        private readonly string _forwardApplicationPath;
-        private readonly IEnumerable<string> _argsToForward;
-        private readonly string _depsFile;
-        private readonly string _runtimeConfig;
-        private readonly string _additionalProbingPath;
-        private Dictionary<string, string> _environmentVariables;
-
-        private readonly string[] _allArgs;
-
-        public ForwardingApp(
-            string forwardApplicationPath,
-            IEnumerable<string> argsToForward,
-            string depsFile = null,
-            string runtimeConfig = null,
-            string additionalProbingPath = null,
-            Dictionary<string, string> environmentVariables = null)
-        {
-            _forwardApplicationPath = forwardApplicationPath;
-            _argsToForward = argsToForward;
-            _depsFile = depsFile;
-            _runtimeConfig = runtimeConfig;
-            _additionalProbingPath = additionalProbingPath;
-            _environmentVariables = environmentVariables;
-
-            var allArgs = new List<string>();
-            allArgs.Add("exec");
-
-            if (_depsFile != null)
-            {
-                allArgs.Add("--depsfile");
-                allArgs.Add(_depsFile);
-            }
-
-            if (_runtimeConfig != null)
-            {
-                allArgs.Add("--runtimeconfig");
-                allArgs.Add(_runtimeConfig);
-            }
-
-            if (_additionalProbingPath != null)
-            {
-                allArgs.Add("--additionalprobingpath");
-                allArgs.Add(_additionalProbingPath);
-            }
-
-            allArgs.Add(_forwardApplicationPath);
-            allArgs.AddRange(_argsToForward);
-
-            _allArgs = allArgs.ToArray();
-        }
-
-        public int Execute()
-        {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = GetHostExeName(),
-                Arguments = ArgumentEscaper.EscapeAndConcatenateArgArrayForProcessStart(_allArgs),
-                UseShellExecute = false
-            };
-
-            if (_environmentVariables != null)
-            {
-                foreach (var entry in _environmentVariables)
-                {
-                    processInfo.Environment[entry.Key] = entry.Value;
-                }
-            }
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            process.Start();
-            process.WaitForExit();
-
-            return process.ExitCode;
-        }
-
-        public ForwardingApp WithEnvironmentVariable(string name, string value)
-        {
-            _environmentVariables = _environmentVariables ?? new Dictionary<string, string>();
-
-            _environmentVariables.Add(name, value);
-
-            return this;
-        }
-
-        private string GetHostExeName()
-        {
-            return $"{s_hostExe}{FileNameSuffixes.CurrentPlatform.Exe}";
-        }
-    }
-
-    public class NuGetForwardingApp
-    {
-        private const string s_nugetExeName = "NuGet.CommandLine.XPlat.dll";
-        private readonly ForwardingApp _forwardingApp;
-
-        public NuGetForwardingApp(IEnumerable<string> argsToForward)
-        {
-            _forwardingApp = new ForwardingApp(
-                GetNuGetExePath(),
-                argsToForward);
-        }
-
-        public int Execute()
-        {
-            return _forwardingApp.Execute();
-        }
-
-        public NuGetForwardingApp WithEnvironmentVariable(string name, string value)
-        {
-            _forwardingApp.WithEnvironmentVariable(name, value);
-
-            return this;
-        }
-
-        private static string GetNuGetExePath()
-        {
-            return Path.Combine(
-                AppContext.BaseDirectory,
-                s_nugetExeName);
-        }
-    }
-
+    
     public class Program
     {
         [MTAThread]
@@ -151,27 +18,13 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
         {
 
            
+ 
+            var basePath = string.Join("/", AppContext.BaseDirectory.Split(new[] { '/', '\\' })
+                .TakeWhile(s => !s.Equals(".nuget", StringComparison.OrdinalIgnoreCase)));
 
-            Console.WriteLine("Hello World");
-            
-            Console.WriteLine(Directory.GetCurrentDirectory());
-
-           // var nugetApp = new NuGetForwardingApp(new[] { "locals", "all" });
-
-//            Console.WriteLine(nugetApp.Execute());
-
-            Console.WriteLine(AppContext.BaseDirectory);
-
-            var basePath = string.Join("/", AppContext.BaseDirectory.Split(new[] { '/', '\\' }).TakeWhile(s => !s.Equals(".nuget", StringComparison.OrdinalIgnoreCase)), "/");
-
-            Console.WriteLine(basePath);
-
-            //C:\Users\pks\.nuget\packages\.tools\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil
-            // Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-            // var fileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
-            var fileName = Path.Combine(basePath, @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
-            Console.WriteLine(fileName);
-
+          //TODO nuget versioning from current dependencies.
+           var fileName = Path.Combine(basePath, @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
+          
 
             // Fires up a new process to run inside this one
             var process = Process.Start(new ProcessStartInfo
@@ -182,7 +35,8 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
 
-                FileName = fileName
+                FileName = fileName,
+                Arguments = string.Join(" ",  args.Select(a=>$"\"{a}\""))
             });
 
             // Depending on your application you may either prioritize the IO or the exact opposite
