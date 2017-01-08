@@ -156,60 +156,67 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
             
             Console.WriteLine(Directory.GetCurrentDirectory());
 
-            var nugetApp = new NuGetForwardingApp(new[] { "locals", "all" });
+           // var nugetApp = new NuGetForwardingApp(new[] { "locals", "all" });
 
-            Console.WriteLine(nugetApp.Execute());
+//            Console.WriteLine(nugetApp.Execute());
+
+            Console.WriteLine(AppContext.BaseDirectory);
+
+            var basePath = string.Join("/", AppContext.BaseDirectory.Split(new[] { '/', '\\' }).TakeWhile(s => !s.Equals(".nuget", StringComparison.OrdinalIgnoreCase)), "/");
+
+            Console.WriteLine(basePath);
 
             //C:\Users\pks\.nuget\packages\.tools\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil
             // Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
             // var fileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
-            // Console.WriteLine(fileName);
+            var fileName = Path.Combine(basePath, @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
+            Console.WriteLine(fileName);
 
 
-            //// Fires up a new process to run inside this one
-            // var process = Process.Start(new ProcessStartInfo
-            // {
-            //     UseShellExecute = false,
+            // Fires up a new process to run inside this one
+            var process = Process.Start(new ProcessStartInfo
+            {
+                UseShellExecute = false,
 
-            //     RedirectStandardError = true,
-            //     RedirectStandardInput = true,
-            //     RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
 
-            //     FileName = fileName
-            // });
+                FileName = fileName
+            });
 
-            // // Depending on your application you may either prioritize the IO or the exact opposite
+            // Depending on your application you may either prioritize the IO or the exact opposite
 
-            // var outputThread = new Thread(outputReader) { Name = "ChildIO Output"};
-            // var errorThread = new Thread(errorReader) { Name = "ChildIO Error" };
-            // var inputThread = new Thread(inputReader) { Name = "ChildIO Input" };
+            var outputThread = new Thread(outputReader) { Name = "ChildIO Output" };
+            var errorThread = new Thread(errorReader) { Name = "ChildIO Error" };
+            var inputThread = new Thread(inputReader) { Name = "ChildIO Input" };
 
-            // // Set as background threads (will automatically stop when application ends)
-            // outputThread.IsBackground = errorThread.IsBackground
-            //     = inputThread.IsBackground = true;
+            // Set as background threads (will automatically stop when application ends)
+            outputThread.IsBackground = errorThread.IsBackground
+                = inputThread.IsBackground = true;
 
-            // // Start the IO threads
-            // outputThread.Start(process);
-            // errorThread.Start(process);
-            // inputThread.Start(process);
+            // Start the IO threads
+            outputThread.Start(process);
+            errorThread.Start(process);
+            inputThread.Start(process);
 
-            // // Demonstrate that the host app can be written to by the application
-            // process.StandardInput.WriteLine("Message from host");
+            // Demonstrate that the host app can be written to by the application
+            process.StandardInput.WriteLine("Message from host");
 
-            // // Signal to end the application
-            // ManualResetEvent stopApp = new ManualResetEvent(false);
+            // Signal to end the application
+            ManualResetEvent stopApp = new ManualResetEvent(false);
 
-            // // Enables the exited event and set the stopApp signal on exited
-            // process.EnableRaisingEvents = true;
-            // process.Exited += (e, sender) => { stopApp.Set(); };
+            // Enables the exited event and set the stopApp signal on exited
+            process.EnableRaisingEvents = true;
+            process.Exited += (e, sender) => { stopApp.Set(); };
 
-            // // Wait for the child app to stop
-            // stopApp.WaitOne();
+            // Wait for the child app to stop
+            stopApp.WaitOne();
 
-            // // Write some nice output for now?
-            // Console.WriteLine();
-            // Console.Write("Process ended... shutting down host");
-            // Thread.Sleep(1000);
+            // Write some nice output for now?
+            Console.WriteLine();
+            Console.Write("Process ended... shutting down host");
+            Thread.Sleep(1000);
 
         }
 
