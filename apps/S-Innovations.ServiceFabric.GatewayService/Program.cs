@@ -51,13 +51,12 @@ namespace SInnovations.ServiceFabric.GatewayService
                     BaseUri = "https://acme-v01.api.letsencrypt.org"
                 });
 
-                container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
                 container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
+                container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
+
                 container.WithActor<GatewayServiceManagerActor>();
+ 
 
-
-             
-              
                 Thread.Sleep(Timeout.Infinite);
             }
             

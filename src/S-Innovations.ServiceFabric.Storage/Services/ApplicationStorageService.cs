@@ -31,6 +31,7 @@ namespace SInnovations.ServiceFabric.Storage.Services
         {
             return new[] { new ServiceInstanceListener(context => this.CreateServiceRemotingListener(context),"RPC") };
         }
+      
 
         public async Task<string> GetApplicationStorageSharedAccessSignature()
         {

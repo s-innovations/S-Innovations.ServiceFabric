@@ -89,7 +89,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
-                ServiceEndpointName = "ServiceEndpoint1",
+                ServiceEndpointName = "PrivateManageServiceEndpoint",
                 GatewayOptions = new GatewayOptions
                 {
                     Key = "NGINX-MANAGER",
@@ -119,8 +119,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         private async Task WriteConfigAsync(IGatewayServiceManagerActor actor)
         {
-            var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint");
-            var sslEndpoint = FabricRuntime.GetActivationContext().GetEndpoint("SslServiceEndpoint");
+            var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("NginxServiceEndpoint");
+            var sslEndpoint = FabricRuntime.GetActivationContext().GetEndpoint("NginxSslServiceEndpoint");
 
             var sb = new StringBuilder();
 
