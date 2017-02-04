@@ -36,7 +36,7 @@ namespace SInnovations.ServiceFabric.Storage.Configuration
 
             var client = new ArmClient(await AzureAD.GetAccessToken());
             var keys = await client.ListKeysAsync<JObject>(StorageAccountId, "2016-01-01");
-
+           
             var account = new CloudStorageAccount(new StorageCredentials(StorageAccountId.Substring(StorageAccountId.LastIndexOf("/") + 1), keys.SelectToken("keys[0].value").ToString()), true);
 
             return account;

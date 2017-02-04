@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
+using System.Fabric.Description;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Practices.Unity;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
@@ -29,11 +31,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
     {
         public static IDictionary<string, List<GatewayServiceRegistrationData>> GroupByServerName(this List<GatewayServiceRegistrationData> proxies)
         {
-            
+
             var servers = proxies.SelectMany(g =>
                         (g.ServerName ?? FabricRuntime.GetNodeContext().IPAddressOrFQDN)
                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(k => new { sslKey=k+g.Ssl, key = k, value = g }))
+                        .Select(k => new { sslKey = k + g.Ssl, key = k, value = g }))
                     .GroupBy(k => k.sslKey).ToDictionary(k => k.Key, k => new { hostname = k.First().key, locations = k.Select(v => v.value).ToList() });
 
 
@@ -41,17 +43,17 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var singles = servers.Where(k => k.Value.locations.Count > 1)
                 .ToDictionary(k => k.Value.hostname, v => v.Value.locations);
 
-                        
+
             foreach (var combine in servers.Where(k => k.Value.locations.Count == 1).GroupBy(k => k.Value.locations.First()))
             {
                 singles.Add(string.Join(" ", combine.Select(k => k.Value.hostname)), new List<GatewayServiceRegistrationData> { combine.Key });
-            }   
+            }
 
-            foreach(var test in singles.ToArray())
+            foreach (var test in singles.ToArray())
             {
                 if (test.Value.Any(k => k.Ssl.Enabled) && test.Key.Contains(' '))
                 {
-                    foreach(var hostname in test.Key.Split(' '))
+                    foreach (var hostname in test.Key.Split(' '))
                     {
                         if (singles.ContainsKey(hostname))
                         {
@@ -66,7 +68,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     singles.Remove(test.Key);
                 }
             }
-            
+
 
             return singles;
         }
@@ -76,15 +78,15 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
     /// </summary>
     public sealed class NginxGatewayService : KestrelHostingService<Startup>
     {
-        
+
 
 
         private string nginxProcessName = "";
-        
+
         private readonly StorageConfiguration Storage;
         private CloudStorageAccount storageAccount;
 
-        public NginxGatewayService(StatelessServiceContext serviceContext, StorageConfiguration storage)
+        public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
                 ServiceEndpointName = "ServiceEndpoint1",
@@ -92,17 +94,17 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 {
                     Key = "NGINX-MANAGER",
                     ReverseProxyLocation = "/manage",
-                    ServerName = "www.earthml.com local.earthml" 
+                    ServerName = "www.earthml.com local.earthml.com"
                 }
 
-            }, serviceContext)
+            }, serviceContext, container)
         {
             Storage = storage;
         }
 
         #region StatelessService
 
-      
+
 
         private bool isNginxRunning()
         {
@@ -119,7 +121,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         {
             var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("ServiceEndpoint");
             var sslEndpoint = FabricRuntime.GetActivationContext().GetEndpoint("SslServiceEndpoint");
-         
+
             var sb = new StringBuilder();
 
             sb.AppendLine("worker_processes  1;");
@@ -139,12 +141,12 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 {
                     var serverName = serverGroup.Key;
                     var sslOn = serverName != "localhost" && serverGroup.Value.Any(k => k.Ssl.Enabled);
-                    
+
                     if (sslOn)
                     {
                         sslOn = await actor.IsCertificateAvaibleAsync(serverName, serverGroup.Value.First().Ssl);
                     }
-                   
+
 
                     sb.AppendLine("\tserver {");
                     {
@@ -176,7 +178,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                             sb.AppendLine($"\t\t ssl_certificate_key {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key;");
 
                         }
-                       
+
 
                         foreach (var a in serverGroup.Value)
                         {
@@ -186,7 +188,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                             }
                         }
 
-                        
+
                     }
                     sb.AppendLine("\t}");
                 }
@@ -276,9 +278,12 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             return base.OnCloseAsync(cancellationToken);
         }
 
-        protected override Task OnOpenAsync(CancellationToken cancellationToken)
+        protected override async Task OnOpenAsync(CancellationToken cancellationToken)
         {
-            return base.OnOpenAsync(cancellationToken);
+
+          
+
+            await base.OnOpenAsync(cancellationToken);
         }
         protected override void OnAbort()
         {
@@ -293,10 +298,14 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
 
+                     
+
+
             storageAccount = await Storage.GetApplicationStorageAccountAsync();
 
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
-            
+
+            await gateway.SetupStorageServiceAsync();
             await WriteConfigAsync(gateway);
 
             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");

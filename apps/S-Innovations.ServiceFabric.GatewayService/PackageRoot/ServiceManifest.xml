@@ -4,6 +4,7 @@
     <!-- This is the name of your ServiceType. 
          This name must match the string used in RegisterServiceType call in Program.cs. -->
     <StatelessServiceType ServiceTypeName="GatewayServiceType" />
+    <StatelessServiceType ServiceTypeName="ApplicationStorageServiceType" />
     <StatefulServiceType ServiceTypeName="GatewayServiceManagerActorServiceType" HasPersistedState="true">
       <Extensions>
         <Extension Name="__GeneratedServiceType__" GeneratedId="ef5ab963-c061-486e-bb1c-84bf1c2fc7e1|Persisted">
@@ -46,6 +47,7 @@
       <Endpoint Name="ServiceEndpoint1" Protocol="http" Type="Input" Port="8499" />
       <Endpoint Name="GatewayServiceManagerActorServiceEndpoint" />
       <Endpoint Name="GatewayServiceManagerActorServiceReplicatorEndpoint" />
+      <Endpoint Name="ApplicationStorageServiceTypeEndpoint" Protocol="http" Type ="Input"/>
     </Endpoints>
   </Resources>
 </ServiceManifest>

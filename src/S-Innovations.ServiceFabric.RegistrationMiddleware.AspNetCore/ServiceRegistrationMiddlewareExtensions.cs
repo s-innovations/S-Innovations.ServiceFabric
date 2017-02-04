@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using SInnovations.ServiceFabric.Gateway.Model;
 
@@ -23,7 +24,17 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
             return app;
 
         }
+        public static IApplicationBuilder AsServiceFabricGatewayService(this IApplicationBuilder app)
+        {
 
-       
+            app.UseMiddleware<ServiceRegistrationMiddleware>(new GatewayServiceInformation());
+
+            return app;
+
+        }
+
+        
+
+
     }
 }

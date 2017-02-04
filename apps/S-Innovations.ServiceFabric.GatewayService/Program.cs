@@ -10,6 +10,7 @@ using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.GatewayService.Services;
 using SInnovations.ServiceFabric.Storage.Configuration;
 using SInnovations.ServiceFabric.Storage.Extensions;
+using SInnovations.ServiceFabric.Storage.Services;
 using SInnovations.ServiceFabric.Unity;
 
 namespace SInnovations.ServiceFabric.GatewayService
@@ -35,6 +36,8 @@ namespace SInnovations.ServiceFabric.GatewayService
 
                 container.ConfigureApplicationStorage();
 
+                
+
 
                 var keyvaultINfo = container.Resolve<KeyVaultSecretManager>();
                 var configuration = new ConfigurationBuilder()
@@ -48,6 +51,7 @@ namespace SInnovations.ServiceFabric.GatewayService
                     BaseUri = "https://acme-v01.api.letsencrypt.org"
                 });
 
+                container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
                 container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
                 container.WithActor<GatewayServiceManagerActor>();
 

@@ -41,5 +41,8 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
         /// <param name="options"></param>
         /// <returns></returns>
         Task<bool> IsCertificateAvaibleAsync(string hostname, SslOptions options);
+
+
+        Task SetupStorageServiceAsync();
     }
 }

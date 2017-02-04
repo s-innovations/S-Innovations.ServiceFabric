@@ -4,5 +4,8 @@
     "apps",
     "C:/dev/sinnovations/S-Innovations.ServiceFabric.Unity/src",
     "C:/dev/sinnovations/S-Innovations.LetsEncrypt/src"
-  ]
+  ],
+  "sdk": {
+    "version": "1.0.0-preview2-003131"
+  }
 }

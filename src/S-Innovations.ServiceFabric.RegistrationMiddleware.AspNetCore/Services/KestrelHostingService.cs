@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Practices.Unity;
@@ -52,22 +53,95 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             return container;
         }
     }
+
+    public interface IUnityWrapper
+    {
+        IUnityContainer ScopedContainer
+        {
+            get;
+        }
+    }
+    public class ScopeWrap
+    {
+
+    }
+    public class UnityWrapper : IUnityWrapper, IDisposable
+    {
+        public UnityWrapper(IUnityContainer Parent)
+        {
+            ScopedContainer = Parent.CreateChildContainer();
+        }
+        public IUnityContainer ScopedContainer { get; set; }
+
+        public void Dispose()
+        {
+            ScopedContainer.Dispose();
+        }
+    }
+
     /// <summary>
     /// A specialized stateless service for hosting ASP.NET Core web apps.
     /// </summary>
     public class KestrelHostingService<TStartUp> : StatelessService where TStartUp : class
     {
         protected KestrelHostingServiceOptions Options { get; set; }
-        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext)
+        protected IUnityContainer Container { get; set; }
+        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext, IUnityContainer container)
             : base(serviceContext)
         {
             Options = options;
+            Container = container; 
         }
 
         protected virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(this.Context);
             services.AddSingleton<ServiceContext>(this.Context);
+
+            services.AddSingleton(Container);
+            //services.AddSingleton(new UnityWrapper(this.Container));
+
+         //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
+           // services.AddScoped<IUnityWrapper>((p)=>new UnityWrapper(p.GetService<IUnityContainer>()));  
+        //    services.AddScoped<IUnityContainer>(p => p.GetService<ScopeWrapper>().ScopedContainer);
+
+            //foreach (var registration in Container.Registrations)
+            //{
+            //    if (registration.RegisteredType == typeof(IEnumerable<>))
+            //    {
+
+            //    }
+            //    else if (registration.MappedToType == registration.RegisteredType)
+            //    {
+
+            //        services.AddSingleton(Container.Resolve(registration.RegisteredType));
+            //    }
+            //    else if (registration.LifetimeManagerType == typeof(ContainerControlledLifetimeManager))
+            //    {
+            //        services.AddSingleton(Container.Resolve(registration.RegisteredType));
+            //    }
+            //    else
+            //    {
+            //        services.Add(new ServiceDescriptor(registration.RegisteredType, registration.MappedToType, GetLifeTime(registration)));
+            //    }
+            //}
+        }
+
+        private ServiceLifetime GetLifeTime(ContainerRegistration registration)
+        {
+            if (registration.LifetimeManagerType == typeof(ContainerControlledLifetimeManager))
+            {
+                return ServiceLifetime.Singleton;
+            }else if (registration.LifetimeManagerType == typeof(HierarchicalLifetimeManager))
+            {
+                return ServiceLifetime.Scoped;
+            }
+            else if (registration.LifetimeManagerType == typeof(TransientLifetimeManager))
+            {
+                return ServiceLifetime.Transient;
+            }
+
+            throw new NotImplementedException("tpye not supported");
         }
 
 
@@ -90,7 +164,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                         var config = context.GetConfigurationPackageObject("Config");
 
                         var builder=new WebHostBuilder().UseKestrel()
-                                    .ConfigureServices(this.ConfigureServices)
+                                    .ConfigureServices(ConfigureServices)
                                     .UseContentRoot(Directory.GetCurrentDirectory())
                                     .UseStartup<TStartUp>();
 
@@ -109,9 +183,11 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                         return builder
                                 .UseUrls(url)
                                 .Build();
-                    }))
+                    }),"kestrel")
             };
         }
+
+         
 
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
         {

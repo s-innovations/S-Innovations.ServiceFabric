@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Fabric;
+using System.Fabric.Description;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Actors;
@@ -77,6 +79,29 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         }
 
+        public async Task SetupStorageServiceAsync()
+        {
+            var client = new FabricClient();
+            var codeContext = this.ActorService.Context.CodePackageActivationContext;
+
+            var applicationName = new Uri(codeContext.ApplicationName.StartsWith("fabric:/") ? codeContext.ApplicationName : $"fabric:/{codeContext.ApplicationName}");
+
+            var services = await client.QueryManager.GetServiceListAsync(applicationName);
+
+            if (!services.Any(s => s.ServiceTypeName == "ApplicationStorageServiceType"))
+            {
+
+                await client.ServiceManager.CreateServiceAsync(new StatelessServiceDescription
+                {
+                    ServiceTypeName = "ApplicationStorageServiceType",
+                    ApplicationName = applicationName,
+                    ServiceName = new Uri(applicationName.ToString() + "/ApplicationStorageService"),
+                    InstanceCount = -1,
+                    PartitionSchemeDescription = new SingletonPartitionSchemeDescription()
+                });
+
+            }
+        }
        
         public async Task ReceiveReminderAsync(string reminderName, byte[] context, TimeSpan dueTime, TimeSpan period)
         {
