@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ServiceFabric.Services.Communication.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting;
+using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
+using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.WindowsAzure.Storage;
@@ -17,6 +20,9 @@ namespace SInnovations.ServiceFabric.Storage.Services
     {
         Task<string> GetApplicationStorageSharedAccessSignature();
     }
+
+
+   
     public class ApplicationStorageService : StatelessService, IApplicationStorageService
     {
         protected StorageConfiguration Storage { get; set; }
@@ -29,9 +35,19 @@ namespace SInnovations.ServiceFabric.Storage.Services
 
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
+           // return new[] { new ServiceInstanceListener(Factory) };
             return new[] { new ServiceInstanceListener(context => this.CreateServiceRemotingListener(context),"RPC") };
         }
-      
+
+        //private ICommunicationListener Factory(StatelessServiceContext arg)
+        //{
+            
+        //    return new FabricTransportServiceRemotingListener(arg, this, new FabricTransportListenerSettings
+        //    {
+        //         EndpointResourceName = "ServiceEndpoint",
+        //         KeepAliveTimeout = 
+        //    });
+        //}
 
         public async Task<string> GetApplicationStorageSharedAccessSignature()
         {

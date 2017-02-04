@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0-*",
 
   "dependencies": {
@@ -6,10 +6,10 @@
     "Microsoft.AspNetCore.DataProtection.Extensions": "1.1.0",
     "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
     "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8",
-    "Microsoft.ServiceFabric": "5.4.145",
-    "S-Innovations.ServiceFabric.Unity": "1.0.0-*",
+    "Microsoft.ServiceFabric": "5.4.164",
+    "S-Innovations.ServiceFabric.Unity": "1.0.0-pre-2017020405",
     "Unity": "4.0.1",
-    "WindowsAzure.Storage": "8.0.0"
+    "WindowsAzure.Storage": "8.0.1"
     //"NETStandard.Library": "1.6.0"
   },
 
