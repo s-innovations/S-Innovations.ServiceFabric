@@ -79,7 +79,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         }
 
-        public async Task SetupStorageServiceAsync()
+        public async Task SetupStorageServiceAsync(int instanceCount)
         {
             var client = new FabricClient();
             var codeContext = this.ActorService.Context.CodePackageActivationContext;
@@ -90,13 +90,13 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             if (!services.Any(s => s.ServiceTypeName == "ApplicationStorageServiceType"))
             {
-
+               
                 await client.ServiceManager.CreateServiceAsync(new StatelessServiceDescription
                 {
                     ServiceTypeName = "ApplicationStorageServiceType",
                     ApplicationName = applicationName,
                     ServiceName = new Uri(applicationName.ToString() + "/ApplicationStorageService"),
-                    InstanceCount = -1,
+                    InstanceCount = instanceCount,
                     PartitionSchemeDescription = new SingletonPartitionSchemeDescription()
                 });
 

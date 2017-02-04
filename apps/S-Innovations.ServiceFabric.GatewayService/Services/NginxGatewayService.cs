@@ -304,8 +304,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             storageAccount = await Storage.GetApplicationStorageAccountAsync();
 
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+            var a = await new FabricClient().ServiceManager.GetServiceDescriptionAsync(this.Context.ServiceName) as StatelessServiceDescription;
 
-            await gateway.SetupStorageServiceAsync();
+            await gateway.SetupStorageServiceAsync(a.InstanceCount);
             await WriteConfigAsync(gateway);
 
             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
