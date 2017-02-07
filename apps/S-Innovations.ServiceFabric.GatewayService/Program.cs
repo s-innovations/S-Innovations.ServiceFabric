@@ -25,14 +25,16 @@ namespace SInnovations.ServiceFabric.GatewayService
         public static void Main(string[] args)
         {
             var log = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .CreateLogger();
+               //.WriteTo.ApplicationInsightsEvents("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef")
+               .WriteTo.ApplicationInsightsTraces("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef", Serilog.Events.LogEventLevel.Debug)
+               .MinimumLevel.Debug()
+               .CreateLogger();
 
-            
+
             using (var container = new UnityContainer().AsFabricContainer())
             {
                 container.AddOptions();
-                container.ConfigureLogging(new LoggerFactory().AddSerilog());
+                container.ConfigureLogging(new LoggerFactory().AddSerilog(log));
 
                 container.ConfigureApplicationStorage();
 
