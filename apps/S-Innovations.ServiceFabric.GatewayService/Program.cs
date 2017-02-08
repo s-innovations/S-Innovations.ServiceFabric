@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,49 +22,56 @@ namespace SInnovations.ServiceFabric.GatewayService
 
     public class Program
     {
-        
+
         public static void Main(string[] args)
         {
             var log = new LoggerConfiguration()
-               //.WriteTo.ApplicationInsightsEvents("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef")
-               .WriteTo.ApplicationInsightsTraces("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef", Serilog.Events.LogEventLevel.Debug)
-               .MinimumLevel.Debug()
-               .CreateLogger();
+                  //.WriteTo.ApplicationInsightsEvents("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef")
+                  .WriteTo.ApplicationInsightsTraces("10e77ea7-1d38-40f7-901c-ef3c2e7d48ef", Serilog.Events.LogEventLevel.Debug)
+                  .MinimumLevel.Debug()
+                  .CreateLogger();
+
+            try {
+               
 
 
-            using (var container = new UnityContainer().AsFabricContainer())
-            {
-                container.AddOptions();
-                container.ConfigureLogging(new LoggerFactory().AddSerilog(log));
-
-                container.ConfigureApplicationStorage();
-
-                
-
-
-                var keyvaultINfo = container.Resolve<KeyVaultSecretManager>();
-                var configuration = new ConfigurationBuilder()
-                    .AddAzureKeyVault(keyvaultINfo.KeyVaultUrl, keyvaultINfo.Client, keyvaultINfo)
-                    .Build(container);        
-
-                container.Configure<KeyVaultOptions>("KeyVault");
-
-                container.WithLetsEncryptService(new LetsEncryptServiceOptions
+                using (var container = new UnityContainer().AsFabricContainer())
                 {
-                    BaseUri = "https://acme-v01.api.letsencrypt.org"
-                });
+                    container.AddOptions();
+                    container.ConfigureLogging(new LoggerFactory().AddSerilog(log));
 
-                container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
-                container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
+                    container.ConfigureApplicationStorage();
 
-                container.WithActor<GatewayServiceManagerActor>();
- 
 
-                Thread.Sleep(Timeout.Infinite);
+
+
+                    var keyvaultINfo = container.Resolve<KeyVaultSecretManager>();
+                    var configuration = new ConfigurationBuilder()
+                        .AddAzureKeyVault(keyvaultINfo.KeyVaultUrl, keyvaultINfo.Client, keyvaultINfo)
+                        .Build(container);
+
+                    container.Configure<KeyVaultOptions>("KeyVault");
+
+                    container.WithLetsEncryptService(new LetsEncryptServiceOptions
+                    {
+                        BaseUri = "https://acme-v01.api.letsencrypt.org"
+                    });
+
+                    container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
+                    container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
+
+                    container.WithActor<GatewayServiceManagerActor>();
+
+
+                    Thread.Sleep(Timeout.Infinite);
+                }
+
+            }catch(Exception ex)
+            {
+                log.Error(ex, "starting failed");
             }
             
-        }
 
-       
+      
     }
 }
