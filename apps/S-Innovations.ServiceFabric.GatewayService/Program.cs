@@ -31,8 +31,9 @@ namespace SInnovations.ServiceFabric.GatewayService
                   .MinimumLevel.Debug()
                   .CreateLogger();
 
-            try {
-               
+            try
+            {
+
 
 
                 using (var container = new UnityContainer().AsFabricContainer())
@@ -66,11 +67,13 @@ namespace SInnovations.ServiceFabric.GatewayService
                     Thread.Sleep(Timeout.Infinite);
                 }
 
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 log.Error(ex, "starting failed");
             }
-            
+
+        }
 
       
     }

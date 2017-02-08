@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Practices.Unity;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
@@ -86,11 +87,16 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
     {
         protected KestrelHostingServiceOptions Options { get; set; }
         protected IUnityContainer Container { get; set; }
-        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext, IUnityContainer container)
+
+        private readonly ILogger _logger;
+        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext,
+            ILoggerFactory factory,
+            IUnityContainer container)
             : base(serviceContext)
         {
             Options = options;
-            Container = container; 
+            Container = container;
+            _logger = factory.CreateLogger<KestrelHostingService<TStartUp>>();
         }
 
         protected virtual void ConfigureServices(IServiceCollection services)
@@ -159,7 +165,9 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                     new KestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
                     {
-                      var context =serviceContext.CodePackageActivationContext;
+                        try {
+                        _logger.LogInformation("building kestrel app for {url}",url);
+                       var context =serviceContext.CodePackageActivationContext;
                         // ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
                         var config = context.GetConfigurationPackageObject("Config");
 
@@ -175,6 +183,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             var environments =config.Settings.Sections["Environment"];
                             if(environments.Parameters.Contains("ASPNETCORE_ENVIRONMENT"))
                             {
+
                                 builder = builder.UseEnvironment(environments.Parameters["ASPNETCORE_ENVIRONMENT"].Value);
 
                             }
@@ -183,6 +192,11 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                         return builder
                                 .UseUrls(url)
                                 .Build();
+                            }catch(Exception ex)
+                        {
+                            _logger.LogWarning(new EventId(),ex,"failed to build app pipeline");
+                            throw;
+                        }
                     }),"kestrel")
             };
         }
@@ -191,21 +205,28 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
         {
-            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
-            var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
-           
-            await base.OnOpenAsync(cancellationToken);
-
-
-            await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
+            try
             {
-                Key = $"{Options.GatewayOptions.Key}-{Context.NodeContext.IPAddressOrFQDN}",
-                IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
-                ServerName = Options.GatewayOptions.ServerName,
-                ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
-                Ssl = Options.GatewayOptions.Ssl,
-                BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}"
-            }); 
+                var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
+                var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
+
+                await base.OnOpenAsync(cancellationToken);
+
+
+                await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
+                {
+                    Key = $"{Options.GatewayOptions.Key}-{Context.NodeContext.IPAddressOrFQDN}",
+                    IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
+                    ServerName = Options.GatewayOptions.ServerName,
+                    ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
+                    Ssl = Options.GatewayOptions.Ssl,
+                    BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}"
+                });
+            }catch(Exception ex)
+            {
+                _logger.LogWarning(new EventId(), ex, "OnOpenAsync failed");
+                throw;
+            }
 
         }
     }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Practices.Unity;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
@@ -85,8 +86,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         private readonly StorageConfiguration Storage;
         private CloudStorageAccount storageAccount;
+        private readonly ILogger _logger;
 
-        public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, StorageConfiguration storage)
+        public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, ILoggerFactory factory, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
                 ServiceEndpointName = "PrivateManageServiceEndpoint",
@@ -97,9 +99,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     ServerName = "www.earthml.com local.earthml.com"
                 }
 
-            }, serviceContext, container)
+            }, serviceContext, factory, container)
         {
             Storage = storage;
+            _logger = factory.CreateLogger<NginxGatewayService>();
         }
 
         #region StatelessService
@@ -279,10 +282,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         }
 
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
-        {
-
-          
-
+        { 
             await base.OnOpenAsync(cancellationToken);
         }
         protected override void OnAbort()
@@ -298,40 +298,47 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
 
-                     
 
-
-            storageAccount = await Storage.GetApplicationStorageAccountAsync();
-
-            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
-            var a = await new FabricClient().ServiceManager.GetServiceDescriptionAsync(this.Context.ServiceName) as StatelessServiceDescription;
-
-            await gateway.SetupStorageServiceAsync(a.InstanceCount);
-            await WriteConfigAsync(gateway);
-
-            launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
-
-
-
-            while (true)
+            try
             {
-                if (cancellationToken.IsCancellationRequested)
-                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
-                if (!isNginxRunning())
-                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+                storageAccount = await Storage.GetApplicationStorageAccountAsync();
 
-                var updated = await gateway.GetLastUpdatedAsync();
-                if (!lastWritten.Equals(updated))
+                var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+                var a = await new FabricClient().ServiceManager.GetServiceDescriptionAsync(this.Context.ServiceName) as StatelessServiceDescription;
+
+                await gateway.SetupStorageServiceAsync(a.InstanceCount);
+                await WriteConfigAsync(gateway);
+
+                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+
+
+
+                while (true)
                 {
-                    lastWritten = updated;
-                    await WriteConfigAsync(gateway);
+                    if (cancellationToken.IsCancellationRequested)
+                        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
-                    launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
+                    if (!isNginxRunning())
+                        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+
+                    var updated = await gateway.GetLastUpdatedAsync();
+                    if (!lastWritten.Equals(updated))
+                    {
+                        lastWritten = updated;
+                        await WriteConfigAsync(gateway);
+
+                        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
+                    }
+
                 }
 
+            }catch(Exception ex)
+            {
+                _logger.LogWarning(new EventId(), ex, "RunAsync Failed");
+                throw;
             }
 
 
