@@ -29,7 +29,7 @@
     <Content Include="PublishProfiles\Local.1Node.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\S-Innovations.ServiceFabric.GatewayService\S-Innovations.ServiceFabric.GatewayService.xproj" />
+    <ProjectReference Include="..\S-Innovations.ServiceFabric.GatewayService\S-Innovations.ServiceFabric.GatewayService.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>

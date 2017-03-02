@@ -1,17 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "GatewayApplication", "apps\S-Innovations.ServiceFabric.GatewayApplication\GatewayApplication.sfproj", "{15D89FA3-3D3E-482C-A8B5-31D3577B3B8F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RegistrationMiddleware", "RegistrationMiddleware", "{1323A766-DD9B-46E8-9A0E-C45DDF252BBC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gateway", "Gateway", "{D75BDCC0-907D-4125-9EBC-815A8F5054DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C6CE75DC-7D1C-4A2F-B9A0-7D015AB52A95}"
 	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
 		packages\Microsoft.ServiceFabric.Actors.0.6.0-preview-01.nupkg = packages\Microsoft.ServiceFabric.Actors.0.6.0-preview-01.nupkg
 		packages\Microsoft.ServiceFabric.Data.0.6.0-preview-01.nupkg = packages\Microsoft.ServiceFabric.Data.0.6.0-preview-01.nupkg
 		packages\Microsoft.ServiceFabric.Data.Impl.0.6.0-preview-01.nupkg = packages\Microsoft.ServiceFabric.Data.Impl.0.6.0-preview-01.nupkg
@@ -29,21 +26,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		packages\system.fabric.strings.5.0.1-preview-01.nupkg = packages\system.fabric.strings.5.0.1-preview-01.nupkg
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.GatewayService", "apps\S-Innovations.ServiceFabric.GatewayService\S-Innovations.ServiceFabric.GatewayService.xproj", "{5981B53E-369E-4112-89F5-E3CF04EB9F02}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.Gateway.Common", "src\S-Innovations.ServiceFabric.Gateway.Common\S-Innovations.ServiceFabric.Gateway.Common.xproj", "{E1DD588D-46C9-4FCA-A161-FCC1E7E275D7}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RegistrationMiddleware.Owin", "src\RegistrationMiddleware.Owin\RegistrationMiddleware.Owin.xproj", "{8F936D3B-CA28-4160-8181-1FE00C2B29E4}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore", "src\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.xproj", "{9CDC0E92-36CA-4014-B503-17E077F6A2A2}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Storage", "Storage", "{A976CAEE-2F6C-4D09-8567-D4C3E9484556}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.Storage", "src\S-Innovations.ServiceFabric.Storage\S-Innovations.ServiceFabric.Storage.xproj", "{E7A3FC26-59C6-4598-A847-558A94033653}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{24ED0EB2-41B8-42B4-8DCC-D31A82312BEE}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil", "src\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil.xproj", "{6CCFCCFB-584F-4BD1-915F-9D721F297D15}"
+Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "GatewayApplication", "apps\S-Innovations.ServiceFabric.GatewayApplication\GatewayApplication.sfproj", "{15D89FA3-3D3E-482C-A8B5-31D3577B3B8F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "S-Innovations.ServiceFabric.GatewayService", "apps\S-Innovations.ServiceFabric.GatewayService\S-Innovations.ServiceFabric.GatewayService.csproj", "{5981B53E-369E-4112-89F5-E3CF04EB9F02}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "S-Innovations.ServiceFabric.Gateway.Common", "src\S-Innovations.ServiceFabric.Gateway.Common\S-Innovations.ServiceFabric.Gateway.Common.csproj", "{E1DD588D-46C9-4FCA-A161-FCC1E7E275D7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegistrationMiddleware.Owin", "src\RegistrationMiddleware.Owin\RegistrationMiddleware.Owin.csproj", "{8F936D3B-CA28-4160-8181-1FE00C2B29E4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore", "src\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.csproj", "{9CDC0E92-36CA-4014-B503-17E077F6A2A2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "S-Innovations.ServiceFabric.Storage", "src\S-Innovations.ServiceFabric.Storage\S-Innovations.ServiceFabric.Storage.csproj", "{E7A3FC26-59C6-4598-A847-558A94033653}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil", "src\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil\S-Innovations.ServiceFabric.CoreCLR.Tools.FabUtil.csproj", "{6CCFCCFB-584F-4BD1-915F-9D721F297D15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -112,8 +111,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{15D89FA3-3D3E-482C-A8B5-31D3577B3B8F} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
 		{1323A766-DD9B-46E8-9A0E-C45DDF252BBC} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
+		{15D89FA3-3D3E-482C-A8B5-31D3577B3B8F} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
 		{5981B53E-369E-4112-89F5-E3CF04EB9F02} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
 		{E1DD588D-46C9-4FCA-A161-FCC1E7E275D7} = {D75BDCC0-907D-4125-9EBC-815A8F5054DB}
 		{8F936D3B-CA28-4160-8181-1FE00C2B29E4} = {1323A766-DD9B-46E8-9A0E-C45DDF252BBC}
