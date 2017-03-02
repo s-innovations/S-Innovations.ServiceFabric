@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>S-Innovations.ServiceFabric.GatewayService</AssemblyName>
     <OutputType>Exe</OutputType>
