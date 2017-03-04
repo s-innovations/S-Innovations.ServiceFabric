@@ -49,8 +49,18 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
           where THostingService : KestrelHostingService<TStartup>
           where TStartup : class
         {
-            container.RegisterInstance(options);
-            container.WithStatelessService<THostingService>(serviceType);
+         
+            container.WithStatelessService<THostingService>(serviceType,child=> { child.RegisterInstance(options); });
+            return container;
+        }
+
+        public static IUnityContainer WithKestrelHosting(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options, Action<WebHostBuilder> builder)
+        {
+            container.WithStatelessService<KestrelHostingService>(serviceType, child => {
+                child.RegisterInstance(options);                
+                child.RegisterType<KestrelHostingService>(new InjectionProperty("WebBuilderConfiguration", builder));            
+            });
+
             return container;
         }
     }
@@ -79,24 +89,24 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             ScopedContainer.Dispose();
         }
     }
-
-    /// <summary>
-    /// A specialized stateless service for hosting ASP.NET Core web apps.
-    /// </summary>
-    public class KestrelHostingService<TStartUp> : StatelessService where TStartUp : class
+    public class KestrelHostingService : StatelessService
     {
+        public Action<IWebHostBuilder> WebBuilderConfiguration { get; set; }
+
         protected KestrelHostingServiceOptions Options { get; set; }
         protected IUnityContainer Container { get; set; }
 
         private readonly ILogger _logger;
-        public KestrelHostingService(KestrelHostingServiceOptions options, StatelessServiceContext serviceContext,
+        public KestrelHostingService(
+            KestrelHostingServiceOptions options, 
+            StatelessServiceContext serviceContext,
             ILoggerFactory factory,
             IUnityContainer container)
             : base(serviceContext)
         {
             Options = options;
             Container = container;
-            _logger = factory.CreateLogger<KestrelHostingService<TStartUp>>();
+            _logger = factory.CreateLogger<KestrelHostingService>();
         }
 
         protected virtual void ConfigureServices(IServiceCollection services)
@@ -107,9 +117,9 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             services.AddSingleton(Container);
             //services.AddSingleton(new UnityWrapper(this.Container));
 
-         //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
-           // services.AddScoped<IUnityWrapper>((p)=>new UnityWrapper(p.GetService<IUnityContainer>()));  
-        //    services.AddScoped<IUnityContainer>(p => p.GetService<ScopeWrapper>().ScopedContainer);
+            //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
+            // services.AddScoped<IUnityWrapper>((p)=>new UnityWrapper(p.GetService<IUnityContainer>()));  
+            //    services.AddScoped<IUnityContainer>(p => p.GetService<ScopeWrapper>().ScopedContainer);
 
             //foreach (var registration in Container.Registrations)
             //{
@@ -138,7 +148,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             if (registration.LifetimeManagerType == typeof(ContainerControlledLifetimeManager))
             {
                 return ServiceLifetime.Singleton;
-            }else if (registration.LifetimeManagerType == typeof(HierarchicalLifetimeManager))
+            }
+            else if (registration.LifetimeManagerType == typeof(HierarchicalLifetimeManager))
             {
                 return ServiceLifetime.Scoped;
             }
@@ -173,8 +184,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                         var builder=new WebHostBuilder().UseKestrel()
                                     .ConfigureServices(ConfigureServices)
-                                    .UseContentRoot(Directory.GetCurrentDirectory())
-                                    .UseStartup<TStartUp>();
+                                    .UseContentRoot(Directory.GetCurrentDirectory());
+                                    
 
                         if(config.Settings.Sections.Contains("Environment"))
                         {
@@ -189,6 +200,9 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             }
 
                         }
+
+                        ConfigureBuilder(builder);
+
                         return builder
                                 .UseUrls(url)
                                 .Build();
@@ -201,7 +215,10 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             };
         }
 
-         
+        public virtual void ConfigureBuilder(IWebHostBuilder builder)
+        {
+            WebBuilderConfiguration?.Invoke(builder);
+        }
 
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
         {
@@ -222,12 +239,34 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     Ssl = Options.GatewayOptions.Ssl,
                     BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}"
                 });
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogWarning(new EventId(), ex, "OnOpenAsync failed");
                 throw;
             }
 
+        }
+    }
+    /// <summary>
+    /// A specialized stateless service for hosting ASP.NET Core web apps.
+    /// </summary>
+    public class KestrelHostingService<TStartUp> : KestrelHostingService where TStartUp : class
+    {
+
+        public KestrelHostingService(
+            KestrelHostingServiceOptions options,
+            StatelessServiceContext serviceContext,
+            ILoggerFactory factory,
+            IUnityContainer container) 
+            : base(options,serviceContext,factory,container)
+        {
+
+        }
+
+        public override void ConfigureBuilder(IWebHostBuilder builder)
+        {
+            builder.UseStartup<TStartUp>();
         }
     }
 }
