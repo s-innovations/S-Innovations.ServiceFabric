@@ -32,7 +32,7 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
         /// Get the last time an update was made that should cause configuration files to be rewritten
         /// </summary>
         /// <returns></returns>
-        Task<DateTimeOffset> GetLastUpdatedAsync();
+     //   Task<DateTimeOffset> GetLastUpdatedAsync();
 
         /// <summary>
         /// Check if a certificate is ready for the given hostname, if not the certificate will be requested for later checks.
@@ -40,8 +40,8 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
         /// <param name="hostname"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        Task<bool> IsCertificateAvaibleAsync(string hostname, SslOptions options);
-
+       // Task<bool> IsCertificateAvaibleAsync(string hostname, SslOptions options);
+        Task RequestCertificateAsync(string hostname, SslOptions options);
 
         Task SetupStorageServiceAsync(int instanceCount);
     }

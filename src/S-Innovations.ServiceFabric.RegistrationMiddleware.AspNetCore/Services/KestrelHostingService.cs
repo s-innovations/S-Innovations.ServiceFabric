@@ -54,7 +54,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             return container;
         }
 
-        public static IUnityContainer WithKestrelHosting(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options, Action<WebHostBuilder> builder)
+        public static IUnityContainer WithKestrelHosting(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options, Action<IWebHostBuilder> builder)
         {
             container.WithStatelessService<KestrelHostingService>(serviceType, child => {
                 child.RegisterInstance(options);                

@@ -13,10 +13,86 @@ using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.GatewayService.Configuration;
 using SInnovations.ServiceFabric.GatewayService.Model;
 using SInnovations.ServiceFabric.Storage.Configuration;
+using Microsoft.ServiceFabric.Services.Remoting;
+using System.Threading;
+using Microsoft.ServiceFabric.Actors.Query;
+using Microsoft.ServiceFabric.Actors.Client;
 
 namespace SInnovations.ServiceFabric.GatewayService.Actors
 {
 
+    public interface IManyfoldActorService : IService
+    {
+        Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken cancellationToken);
+        Task<CertGenerationState> GetCertGenerationInfoAsync(string hostname, SslOptions options, CancellationToken cancellationToken);
+    }
+
+    public class ManyfoldActorService : ActorService, IManyfoldActorService
+    {
+        public ManyfoldActorService(
+            StatefulServiceContext context, 
+            ActorTypeInformation actorTypeInfo, 
+            Func<ActorService, ActorId, ActorBase> actorFactory = null,
+            Func<ActorBase, IActorStateProvider, IActorStateManager> stateManagerFactory = null,
+            IActorStateProvider stateProvider = null, ActorServiceSettings settings = null) 
+            : base(context, actorTypeInfo, actorFactory, stateManagerFactory, stateProvider, settings)
+        {
+
+        }
+
+        public async Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken cancellationToken)
+        {
+            ContinuationToken continuationToken = null;
+            var actors = new Dictionary<long, DateTimeOffset>();
+
+            do
+            {
+                
+                var page = await this.StateProvider.GetActorsAsync(100, continuationToken, cancellationToken);
+
+                foreach (var actor in page.Items)
+                {
+                    if (await this.StateProvider.ContainsStateAsync(actor, GatewayServiceManagerActor.STATE_LAST_UPDATED_NAME, cancellationToken))
+                    {
+                        var count = await this.StateProvider.LoadStateAsync<DateTimeOffset>(actor, GatewayServiceManagerActor.STATE_LAST_UPDATED_NAME, cancellationToken);
+                        actors.Add(actor.GetLongId(), count);
+                    }
+                }
+
+                continuationToken = page.ContinuationToken;
+            }
+            while (continuationToken != null);
+
+            return actors;
+        }
+
+        public async Task<CertGenerationState> GetCertGenerationInfoAsync(string hostname, SslOptions options, CancellationToken cancellationToken)
+        {
+            ContinuationToken continuationToken = null;
+            
+            do
+            {
+
+                var page = await this.StateProvider.GetActorsAsync(100, continuationToken, cancellationToken);
+
+                foreach (var actor in page.Items)
+                {
+                    if(await this.StateProvider.ContainsStateAsync(actor, $"cert_{hostname}",cancellationToken))
+                        return await this.StateProvider.LoadStateAsync<CertGenerationState>(actor, $"cert_{hostname}", cancellationToken);
+                   
+                }
+
+                continuationToken = page.ContinuationToken;
+            }
+            while (continuationToken != null);
+
+            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+
+            await gateway.RequestCertificateAsync(hostname, options);
+
+            return null;
+        }
+    }
 
     /// <remarks>
     /// This class represents an actor.
@@ -32,7 +108,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
     {
         private const string REMINDER_NAME = "processSslQueue";
         private const string CERT_QUEUE_NAME = "certQueue";
-        private const string STATE_LAST_UPDATED_NAME = "lastUpdated";
+        public const string STATE_LAST_UPDATED_NAME = "lastUpdated";
         private const string STATE_PROXY_DATA_NAME = "proxyData";
 
         private readonly StorageConfiguration Storage;
@@ -55,28 +131,18 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         public Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync() => StateManager.GetStateAsync<List<GatewayServiceRegistrationData>>("proxyData");
 
-        public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
+     //   public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
 
 
-        public async Task<bool> IsCertificateAvaibleAsync(string hostname, SslOptions options)
+        public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
-
-            var certInfo = await StateManager.TryGetStateAsync<CertGenerationState>($"cert_{hostname}");
-
-            if (certInfo.HasValue)
-                return certInfo.Value.Completed;
-
-
-
             await StateManager.AddStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options });
 
             await AddHostnameToQueue(hostname);
 
             await RegisterReminderAsync(REMINDER_NAME, new byte[0],
                TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
-
-            return false;
-
+          
         }
 
         public async Task SetupStorageServiceAsync(int instanceCount)
