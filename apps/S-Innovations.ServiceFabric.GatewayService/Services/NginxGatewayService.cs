@@ -233,6 +233,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
                 sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
+              //  sb.AppendLine($"{tabs}proxy_redirect off;");
+                sb.AppendLine($"{tabs}server_name_in_redirect on;");
+                sb.AppendLine($"{tabs}port_in_redirect off;");
+
+               
                 sb.AppendLine($"{tabs}proxy_set_header Upgrade $http_upgrade;");
                 sb.AppendLine($"{tabs}proxy_set_header Connection keep-alive;");
 
