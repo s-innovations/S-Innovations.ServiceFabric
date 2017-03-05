@@ -5,7 +5,7 @@
     <Parameter Name="AzureADServicePrincipal" DefaultValue="" />
     <Parameter Name="TenantId" DefaultValue="" />
     <Parameter Name="ApplicationStorageAccountId" DefaultValue="" />
-    <Parameter Name="AzureResourceManagerCertThumbrint" DefaultValue="3B528F30CF0813FAA9232C1B12ACA9211E2AF2B7" />
+    <Parameter Name="AzureResourceManagerCertThumbrint" DefaultValue="C03BB5A6410741CDD2927B4FF88C3E67215A393B" />
     <Parameter Name="Azure.KeyVault.Uri" DefaultValue="https://earthml-core-k3ci.vault.azure.net/" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
