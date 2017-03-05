@@ -25,6 +25,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
     {
         Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken cancellationToken);
         Task<CertGenerationState> GetCertGenerationInfoAsync(string hostname, SslOptions options, CancellationToken cancellationToken);
+
+        Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken);
     }
 
     public class ManyfoldActorService : ActorService, IManyfoldActorService
@@ -38,6 +40,32 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
             : base(context, actorTypeInfo, actorFactory, stateManagerFactory, stateProvider, settings)
         {
 
+        }
+
+        public async Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken)
+        {
+            ContinuationToken continuationToken = null;
+            var all = new List<GatewayServiceRegistrationData>();
+
+            do
+            {
+
+                var page = await this.StateProvider.GetActorsAsync(100, continuationToken, cancellationToken);
+
+                foreach (var actor in page.Items)
+                {
+                    if (await this.StateProvider.ContainsStateAsync(actor, GatewayServiceManagerActor.STATE_PROXY_DATA_NAME, cancellationToken))
+                    {
+                        var count = await this.StateProvider.LoadStateAsync<List<GatewayServiceRegistrationData>>(actor, GatewayServiceManagerActor.STATE_PROXY_DATA_NAME, cancellationToken);
+                        all.AddRange(count);
+                    }
+                }
+
+                continuationToken = page.ContinuationToken;
+            }
+            while (continuationToken != null);
+
+            return all;
         }
 
         public async Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken cancellationToken)
@@ -87,9 +115,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
             while (continuationToken != null);
 
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
-
             await gateway.RequestCertificateAsync(hostname, options);
-
             return null;
         }
     }
@@ -109,7 +135,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
         private const string REMINDER_NAME = "processSslQueue";
         private const string CERT_QUEUE_NAME = "certQueue";
         public const string STATE_LAST_UPDATED_NAME = "lastUpdated";
-        private const string STATE_PROXY_DATA_NAME = "proxyData";
+        public const string STATE_PROXY_DATA_NAME = "proxyData";
 
         private readonly StorageConfiguration Storage;
         private readonly LetsEncryptService letsEncrypt;
@@ -136,6 +162,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
+            if (await StateManager.ContainsStateAsync($"cert_{hostname}"))
+                return;
+
             await StateManager.AddStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options });
 
             await AddHostnameToQueue(hostname);
@@ -255,8 +284,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                 proxies[proxies.IndexOf(found)] = data;
             }
 
-            await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
             await StateManager.SetStateAsync(STATE_PROXY_DATA_NAME, proxies);
+            await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
+         
 
         }
 

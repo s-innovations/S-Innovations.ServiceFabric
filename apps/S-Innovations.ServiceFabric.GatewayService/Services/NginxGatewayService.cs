@@ -91,7 +91,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         private CloudStorageAccount storageAccount;
         private readonly ILogger _logger;
 
-        private readonly FabricClient _fabricClient  =new FabricClient();
+        private readonly FabricClient _fabricClient = new FabricClient();
 
         public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, ILoggerFactory factory, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
@@ -125,7 +125,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 return false;
         }
 
-        private async Task WriteConfigAsync(IGatewayServiceManagerActor actor, CancellationToken token)
+        private async Task WriteConfigAsync(CancellationToken token)
         {
             var endpoint = FabricRuntime.GetActivationContext().GetEndpoint("NginxServiceEndpoint");
             var sslEndpoint = FabricRuntime.GetActivationContext().GetEndpoint("NginxSslServiceEndpoint");
@@ -141,7 +141,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine("\tkeepalive_timeout  65;");
             sb.AppendLine("\tgzip  on;");
             {
-                var proxies = await actor.GetGatewayServicesAsync();
+                var proxies = await GetGatewayServicesAsync(token);
 
 
 
@@ -152,7 +152,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                     if (sslOn)
                     {
-                        var state = await GetCertGenerationStateAsync(serverName, serverGroup.Value.First().Ssl,token);
+                        var state = await GetCertGenerationStateAsync(serverName, serverGroup.Value.First().Ssl, token);
                         sslOn = state != null && state.Completed;
                     }
 
@@ -232,7 +232,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var tabs = string.Join("", Enumerable.Range(0, level + 1).Select(r => "\t"));
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
-                sb.AppendLine($"{tabs}proxy_pass {url};");
+                sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
                 sb.AppendLine($"{tabs}proxy_set_header Upgrade $http_upgrade;");
                 sb.AppendLine($"{tabs}proxy_set_header Connection keep-alive;");
 
@@ -288,7 +288,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         }
 
         protected override async Task OnOpenAsync(CancellationToken cancellationToken)
-        { 
+        {
             await base.OnOpenAsync(cancellationToken);
         }
         protected override void OnAbort()
@@ -301,13 +301,39 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             base.OnAbort();
         }
         private DateTimeOffset lastWritten = DateTimeOffset.MinValue;
+        public async Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken)
+        {
+            var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
+            var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
 
+
+            var partitions = new List<long>();
+            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
+            foreach (var servicePartition in servicePartitionList)
+            {
+                var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
+                partitions.Add(partitionInformation.LowKey);
+            }
+
+            var serviceProxyFactory = new ServiceProxyFactory();
+
+            var all = new List<GatewayServiceRegistrationData>();
+            foreach (var partition in partitions)
+            {
+                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+
+                var state = await actorService.GetGatewayServicesAsync(cancellationToken);
+                all.AddRange(state);
+
+            }
+            return all;
+        }
         public async Task<CertGenerationState> GetCertGenerationStateAsync(string hostname, SslOptions options, CancellationToken token)
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
 
-            
+
             var partitions = new List<long>();
             var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
             foreach (var servicePartition in servicePartitionList)
@@ -323,22 +349,22 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             {
                 var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
-                var state = await actorService.GetCertGenerationInfoAsync(hostname,options, token);
-                if(state != null)
+                var state = await actorService.GetCertGenerationInfoAsync(hostname, options, token);
+                if (state != null)
                 {
                     return state;
                 }
-                
+
             }
             return null;
         }
         public async Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken token)
         {
-            
+
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
 
-           
+
             var partitions = new List<long>();
             var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
             foreach (var servicePartition in servicePartitionList)
@@ -376,7 +402,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 var a = await _fabricClient.ServiceManager.GetServiceDescriptionAsync(this.Context.ServiceName) as StatelessServiceDescription;
 
                 await gateway.SetupStorageServiceAsync(a.InstanceCount);
-                await WriteConfigAsync(gateway, cancellationToken);
+                await WriteConfigAsync(cancellationToken);
 
                 launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
 
@@ -393,13 +419,14 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                         launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
 
                     var allActorsUpdated = await GetLastUpdatedAsync(cancellationToken);
-                    if (allActorsUpdated.ContainsKey(gateway.GetActorId().GetLongId())) {
+                    if (allActorsUpdated.ContainsKey(gateway.GetActorId().GetLongId()))
+                    {
                         var updated = allActorsUpdated[gateway.GetActorId().GetLongId()];  // await gateway.GetLastUpdatedAsync();
 
                         if (!lastWritten.Equals(updated))
                         {
                             lastWritten = updated;
-                            await WriteConfigAsync(gateway, cancellationToken);
+                            await WriteConfigAsync(cancellationToken);
 
                             launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
                         }
@@ -407,7 +434,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     }
                 }
 
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogWarning(new EventId(), ex, "RunAsync Failed");
                 throw;

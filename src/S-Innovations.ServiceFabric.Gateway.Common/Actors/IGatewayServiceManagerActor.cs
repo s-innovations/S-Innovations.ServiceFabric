@@ -27,7 +27,7 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
         /// </summary>
         /// <returns></returns>
                       
-        Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync();
+     //   Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync();
         /// <summary>
         /// Get the last time an update was made that should cause configuration files to be rewritten
         /// </summary>
