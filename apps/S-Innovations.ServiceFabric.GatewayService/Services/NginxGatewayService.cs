@@ -356,6 +356,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 }
 
             }
+
+            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+            await gateway.RequestCertificateAsync(hostname, options);
+
             return null;
         }
         public async Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken token)

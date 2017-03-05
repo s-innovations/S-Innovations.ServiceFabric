@@ -113,9 +113,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                 continuationToken = page.ContinuationToken;
             }
             while (continuationToken != null);
-
-            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
-            await gateway.RequestCertificateAsync(hostname, options);
+           
             return null;
         }
     }
