@@ -18,6 +18,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using SInnovations.ServiceFabric.Gateway.Actors;
 using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.Unity;
+using Microsoft.Extensions.Configuration;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -185,6 +186,11 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                         var builder=new WebHostBuilder().UseKestrel()
                                     .ConfigureServices(ConfigureServices)
                                     .UseContentRoot(Directory.GetCurrentDirectory());
+
+                            if (Container.IsRegistered<IConfiguration>())
+                            {
+                                builder.UseConfiguration(Container.Resolve<IConfiguration>());
+                            }
                                     
 
                         if(config.Settings.Sections.Contains("Environment"))
