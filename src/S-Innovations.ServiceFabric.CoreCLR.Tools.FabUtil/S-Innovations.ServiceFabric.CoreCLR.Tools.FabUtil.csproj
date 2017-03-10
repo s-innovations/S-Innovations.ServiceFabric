@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Cli.Utils" Version="1.0.0-preview2-003121" />
+    <PackageReference Include="Microsoft.DotNet.Cli.Utils" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
