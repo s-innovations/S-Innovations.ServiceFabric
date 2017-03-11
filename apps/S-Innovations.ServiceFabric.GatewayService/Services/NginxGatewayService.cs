@@ -96,7 +96,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, ILoggerFactory factory, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
-                ServiceEndpointName = "PrivateManageServiceEndpoint",
+               // ServiceEndpointName = "PrivateManageServiceEndpoint",
                 GatewayOptions = new GatewayOptions
                 {
                     Key = "NGINX-MANAGER",
