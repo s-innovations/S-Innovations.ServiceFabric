@@ -101,7 +101,12 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 {
                     Key = "NGINX-MANAGER",
                     ReverseProxyLocation = "/manage/",
-                    ServerName = "www.earthml.com local.earthml.com"
+                    ServerName = "www.earthml.com local.earthml.com",
+                     Ssl = new SslOptions
+                     {
+                         Enabled =true,
+                         SignerEmail ="info@earthml.com"
+                     }
                 }
 
             }, serviceContext, factory, container)
