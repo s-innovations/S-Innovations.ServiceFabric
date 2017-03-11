@@ -19,6 +19,7 @@ using SInnovations.ServiceFabric.Gateway.Actors;
 using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.Unity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.ServiceFabric.Services.Client;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -231,8 +232,25 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             try
             {
                 var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
-                var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
 
+                
+                if(!this.GetAddresses().TryGetValue("kestrel",out string backAddress))
+                {
+                 
+                }
+
+                if (!string.IsNullOrEmpty(Options.ServiceEndpointName))
+                {
+                    var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
+                    backAddress = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}";
+                }
+              
+
+                // var resolver = ServicePartitionResolver.GetDefault();
+                //  var fabricClient = new FabricClient();
+                //  var servicse = fabricClient.QueryManager.GetPartitionListAsync()
+              // var a = this.GetAddresses();
+              //  Console.WriteLine(string.Join(",", a.Select(k => k.Key + k.Value)));
                 await base.OnOpenAsync(cancellationToken);
 
 
@@ -243,7 +261,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     ServerName = Options.GatewayOptions.ServerName,
                     ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
                     Ssl = Options.GatewayOptions.Ssl,
-                    BackendPath = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}"
+                    BackendPath = backAddress
                 });
             }
             catch (Exception ex)
