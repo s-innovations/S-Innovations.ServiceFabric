@@ -100,7 +100,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 GatewayOptions = new GatewayOptions
                 {
                     Key = "NGINX-MANAGER",
-                    ReverseProxyLocation = "/manage",
+                    ReverseProxyLocation = "/manage/",
                     ServerName = "www.earthml.com local.earthml.com"
                 }
 
@@ -113,6 +113,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         #region StatelessService
 
 
+        protected override void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton(this);
+            base.ConfigureServices(services);
+        }
 
         private bool isNginxRunning()
         {
