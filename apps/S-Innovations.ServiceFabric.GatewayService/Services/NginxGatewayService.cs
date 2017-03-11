@@ -124,7 +124,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             base.ConfigureServices(services);
         }
 
-        private bool isNginxRunning()
+        private bool IsNginxRunning()
         {
             if (!string.IsNullOrEmpty(nginxProcessName))
             {
@@ -201,7 +201,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                         foreach (var a in serverGroup.Value)
                         {
-                            if (a.IPAddressOrFQDN == FabricRuntime.GetNodeContext().IPAddressOrFQDN)
+                            if (a.IPAddressOrFQDN == this.Context.NodeContext.IPAddressOrFQDN)
                             {
                                 WriteProxyPassLocation(2, a.ReverseProxyLocation, a.BackendPath, sb);
                             }
@@ -295,7 +295,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         protected override Task OnCloseAsync(CancellationToken cancellationToken)
         {
-            if (isNginxRunning())
+            if (IsNginxRunning())
                 launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
 
@@ -308,7 +308,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         }
         protected override void OnAbort()
         {
-            if (isNginxRunning())
+            if (IsNginxRunning())
                 launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
 
@@ -434,7 +434,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     cancellationToken.ThrowIfCancellationRequested();
                     await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
-                    if (!isNginxRunning())
+                    if (!IsNginxRunning())
                         launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
 
                     var allActorsUpdated = await GetLastUpdatedAsync(cancellationToken);
