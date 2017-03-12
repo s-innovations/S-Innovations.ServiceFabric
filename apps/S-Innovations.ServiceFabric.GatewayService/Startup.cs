@@ -196,7 +196,7 @@ namespace SInnovations.ServiceFabric.GatewayService
             services.AddDefaultHttpRequestDispatcherProvider();
 
             services.AddRouting();
-
+                
 
         }
 
@@ -232,7 +232,7 @@ namespace SInnovations.ServiceFabric.GatewayService
                     await context.Response.WriteAsync(JToken.FromObject(await a.GetGatewayServicesAsync(context.RequestAborted)).ToString(Formatting.Indented));
                 });
 
-                router.MapDelete("services/{key:string}", async (context) =>
+                router.MapDelete("services/{key}", async (context) =>
                 {
                     var a = context.RequestServices.GetService<NginxGatewayService>();
                     var routeData = context.GetRouteData();
