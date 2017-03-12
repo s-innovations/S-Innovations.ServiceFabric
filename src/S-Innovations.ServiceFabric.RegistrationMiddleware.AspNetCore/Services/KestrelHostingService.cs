@@ -20,10 +20,11 @@ using SInnovations.ServiceFabric.Gateway.Model;
 using SInnovations.ServiceFabric.Unity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ServiceFabric.Services.Client;
+using Serilog;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
-    
+
     public class GatewayOptions
     {
         public string Key { get; set; }
@@ -33,14 +34,52 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
     }
     public class KestrelHostingServiceOptions
     {
-      //  public string ReverseProxyLocation { get; set; }
+        //  public string ReverseProxyLocation { get; set; }
         public string ServiceEndpointName { get; set; }
 
         public GatewayOptions GatewayOptions { get; set; } = new GatewayOptions();
     }
 
+    public class ApplicationInsights
+    {
+        public string InstrumentationKey { get; set; }
+
+    }
+
     public static class KestrelHostingExtensions
     {
+        public static IUnityContainer ConfigureSerilogging(this IUnityContainer container, Action<LoggerConfiguration> configure)
+        {
+            if (!container.IsRegistered<LoggerConfiguration>())
+            {
+
+                container.RegisterInstance(new LoggerConfiguration());
+                container.RegisterType<ILoggerFactory>(new ContainerControlledLifetimeManager(),
+                     new InjectionFactory((c) => new LoggerFactory().AddSerilog(c.Resolve<LoggerConfiguration>().CreateLogger())));
+            }
+
+            configure(container.Resolve<LoggerConfiguration>());
+
+            return container;
+        }
+        public static IUnityContainer ConfigureApplicationInsights(this IUnityContainer container)
+        {
+          
+
+            container.Configure<ApplicationInsights>(container.Resolve<IConfiguration>().GetSection("ApplicationInsights"));
+
+            container.ConfigureSerilogging((logConfiguration) =>
+            {
+
+                logConfiguration.WriteTo.ApplicationInsightsTraces(container.Resolve<ApplicationInsights>().InstrumentationKey, Serilog.Events.LogEventLevel.Information);
+            });
+
+           
+
+            return container;
+        }
+
+
         public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
             where TStartup : class
         {
@@ -51,16 +90,17 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
           where THostingService : KestrelHostingService<TStartup>
           where TStartup : class
         {
-         
-            container.WithStatelessService<THostingService>(serviceType,child=> { child.RegisterInstance(options); });
+
+            container.WithStatelessService<THostingService>(serviceType, child => { child.RegisterInstance(options); });
             return container;
         }
 
         public static IUnityContainer WithKestrelHosting(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options, Action<IWebHostBuilder> builder)
         {
-            container.WithStatelessService<KestrelHostingService>(serviceType, child => {
-                child.RegisterInstance(options);                
-                child.RegisterType<KestrelHostingService>(new InjectionProperty("WebBuilderConfiguration", builder));            
+            container.WithStatelessService<KestrelHostingService>(serviceType, child =>
+            {
+                child.RegisterInstance(options);
+                child.RegisterType<KestrelHostingService>(new InjectionProperty("WebBuilderConfiguration", builder));
             });
 
             return container;
@@ -98,9 +138,9 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         protected KestrelHostingServiceOptions Options { get; set; }
         protected IUnityContainer Container { get; set; }
 
-        private readonly ILogger _logger;
+        private readonly Microsoft.Extensions.Logging.ILogger _logger;
         public KestrelHostingService(
-            KestrelHostingServiceOptions options, 
+            KestrelHostingServiceOptions options,
             StatelessServiceContext serviceContext,
             ILoggerFactory factory,
             IUnityContainer container)
@@ -192,7 +232,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             {
                                 builder.UseConfiguration(Container.Resolve<IConfiguration>());
                             }
-                                    
+
 
                         if(config.Settings.Sections.Contains("Environment"))
                         {
@@ -233,10 +273,10 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             {
                 var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0), "S-Innovations.ServiceFabric.GatewayApplication", "GatewayServiceManagerActorService");
 
-                
-                if(!this.GetAddresses().TryGetValue("kestrel",out string backAddress))
+
+                if (!this.GetAddresses().TryGetValue("kestrel", out string backAddress))
                 {
-                 
+
                 }
 
                 if (!string.IsNullOrEmpty(Options.ServiceEndpointName))
@@ -244,13 +284,13 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     var endpoint = Context.CodePackageActivationContext.GetEndpoint(Options.ServiceEndpointName);
                     backAddress = $"{endpoint.Protocol.ToString().ToLower()}://{Context.NodeContext.IPAddressOrFQDN}:{endpoint.Port}";
                 }
-              
+
 
                 // var resolver = ServicePartitionResolver.GetDefault();
                 //  var fabricClient = new FabricClient();
                 //  var servicse = fabricClient.QueryManager.GetPartitionListAsync()
-              // var a = this.GetAddresses();
-              //  Console.WriteLine(string.Join(",", a.Select(k => k.Key + k.Value)));
+                // var a = this.GetAddresses();
+                //  Console.WriteLine(string.Join(",", a.Select(k => k.Key + k.Value)));
                 await base.OnOpenAsync(cancellationToken);
 
 
@@ -284,8 +324,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             KestrelHostingServiceOptions options,
             StatelessServiceContext serviceContext,
             ILoggerFactory factory,
-            IUnityContainer container) 
-            : base(options,serviceContext,factory,container)
+            IUnityContainer container)
+            : base(options, serviceContext, factory, container)
         {
 
         }
