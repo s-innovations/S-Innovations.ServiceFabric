@@ -105,7 +105,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Configuration
         private async Task<string> GetTokenFromClientSecret(string authority, string resource)
         {
             var authContext = new AuthenticationContext(authority);
-            var result = await authContext.AcquireTokenAsync(resource, AzureAD.AzureADServiceCredentials);
+            var result = await authContext.AcquireTokenAsync(resource, AzureAD.CreateSecureCredentials());
             return result.AccessToken;
         }
         /// <inheritdoc />

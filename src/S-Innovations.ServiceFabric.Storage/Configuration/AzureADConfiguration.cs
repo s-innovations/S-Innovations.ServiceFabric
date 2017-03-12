@@ -13,14 +13,14 @@ namespace SInnovations.ServiceFabric.Storage.Configuration
     public class AzureADConfiguration
     {
         private readonly TokenCache _cache;
+        private readonly ConfigurationPackage _config;
+        // private readonly 
         public AzureADConfiguration(ConfigurationPackage configurationPackage, TokenCache cache)
         {
             _cache = cache;
+            _config = configurationPackage;
 
 
-            var section = configurationPackage.Settings.Sections["AzureResourceManager"].Parameters;
-            AzureADServiceCredentials = ParseSecureString(section["AzureADServicePrincipal"].DecryptValue());
-            TenantId = section["TenantId"].Value;
 
         }
 
@@ -70,19 +70,27 @@ namespace SInnovations.ServiceFabric.Storage.Configuration
             }
         }
 
-        public string TenantId { get; set; }
-        public ClientCredential AzureADServiceCredentials { get; set; }
+        //   public string TenantId { get; set; }
+        //   public ClientCredential AzureADServiceCredentials { get; set; }
 
+        public ClientCredential CreateSecureCredentials()
+        {
 
+            var section = _config.Settings.Sections["AzureResourceManager"].Parameters;
+            return ParseSecureString(section["AzureADServicePrincipal"].DecryptValue());
+        }
         public async Task<string> GetAccessToken()
         {
 
 
-            var ctx = new AuthenticationContext($"https://login.microsoftonline.com/{TenantId}", _cache);
+            var section = _config.Settings.Sections["AzureResourceManager"].Parameters;
 
-            var token = await ctx.AcquireTokenAsync("https://management.azure.com/", AzureADServiceCredentials);
+            var ctx = new AuthenticationContext($"https://login.microsoftonline.com/{section["TenantId"].Value}", _cache);
+
+            var token = await ctx.AcquireTokenAsync("https://management.azure.com/", ParseSecureString(section["AzureADServicePrincipal"].DecryptValue()));
 
             return token.AccessToken;
+
         }
 
 
