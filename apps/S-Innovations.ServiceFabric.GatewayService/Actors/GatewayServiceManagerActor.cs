@@ -27,21 +27,53 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
         Task<CertGenerationState> GetCertGenerationInfoAsync(string hostname, SslOptions options, CancellationToken cancellationToken);
 
         Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken);
+        Task DeleteGatewayServiceAsync(string key, CancellationToken cancellationToken);
     }
 
     public class ManyfoldActorService : ActorService, IManyfoldActorService
     {
         public ManyfoldActorService(
-            StatefulServiceContext context, 
-            ActorTypeInformation actorTypeInfo, 
+            StatefulServiceContext context,
+            ActorTypeInformation actorTypeInfo,
             Func<ActorService, ActorId, ActorBase> actorFactory = null,
             Func<ActorBase, IActorStateProvider, IActorStateManager> stateManagerFactory = null,
-            IActorStateProvider stateProvider = null, ActorServiceSettings settings = null) 
+            IActorStateProvider stateProvider = null, ActorServiceSettings settings = null)
             : base(context, actorTypeInfo, actorFactory, stateManagerFactory, stateProvider, settings)
         {
 
         }
+        public async Task DeleteGatewayServiceAsync(string key, CancellationToken cancellationToken)
+        {
+            ContinuationToken continuationToken = null;
 
+            do
+            {
+
+                var page = await this.StateProvider.GetActorsAsync(100, continuationToken, cancellationToken);
+
+                foreach (var actor in page.Items)
+                {
+                    if (await this.StateProvider.ContainsStateAsync(actor, GatewayServiceManagerActor.STATE_PROXY_DATA_NAME, cancellationToken))
+                    {
+                        var registrations = await this.StateProvider.LoadStateAsync<List<GatewayServiceRegistrationData>>(actor, GatewayServiceManagerActor.STATE_PROXY_DATA_NAME, cancellationToken);
+
+                        if (registrations.RemoveAll(registration => registration.Key == key) > 0)
+                        {
+                            var changes = new ActorStateChange(
+                                    GatewayServiceManagerActor.STATE_PROXY_DATA_NAME,
+                                    typeof(List<GatewayServiceRegistrationData>),
+                                    registrations, StateChangeKind.Update);
+
+                            await this.StateProvider.SaveStateAsync(actor, new[] { changes }, cancellationToken);
+                        }
+                    }
+                }
+
+                continuationToken = page.ContinuationToken;
+            }
+            while (continuationToken != null);
+
+        }
         public async Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken)
         {
             ContinuationToken continuationToken = null;
@@ -75,7 +107,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             do
             {
-                
+
                 var page = await this.StateProvider.GetActorsAsync(100, continuationToken, cancellationToken);
 
                 foreach (var actor in page.Items)
@@ -97,7 +129,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
         public async Task<CertGenerationState> GetCertGenerationInfoAsync(string hostname, SslOptions options, CancellationToken cancellationToken)
         {
             ContinuationToken continuationToken = null;
-            
+
             do
             {
 
@@ -105,17 +137,19 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
                 foreach (var actor in page.Items)
                 {
-                    if(await this.StateProvider.ContainsStateAsync(actor, $"cert_{hostname}",cancellationToken))
+                    if (await this.StateProvider.ContainsStateAsync(actor, $"cert_{hostname}", cancellationToken))
                         return await this.StateProvider.LoadStateAsync<CertGenerationState>(actor, $"cert_{hostname}", cancellationToken);
-                   
+
                 }
 
                 continuationToken = page.ContinuationToken;
             }
             while (continuationToken != null);
-           
+
             return null;
         }
+
+
     }
 
     /// <remarks>
@@ -155,8 +189,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         public Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync() => StateManager.GetStateAsync<List<GatewayServiceRegistrationData>>("proxyData");
 
-     //   public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
-
+        //   public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
 
         public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
@@ -169,7 +202,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             await RegisterReminderAsync(REMINDER_NAME, new byte[0],
                TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
-          
+
         }
 
         public async Task SetupStorageServiceAsync(int instanceCount)
@@ -183,7 +216,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             if (!services.Any(s => s.ServiceTypeName == "ApplicationStorageServiceType"))
             {
-               
+
                 await client.ServiceManager.CreateServiceAsync(new StatelessServiceDescription
                 {
                     ServiceTypeName = "ApplicationStorageServiceType",
@@ -195,7 +228,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             }
         }
-       
+
         public async Task ReceiveReminderAsync(string reminderName, byte[] context, TimeSpan dueTime, TimeSpan period)
         {
             if (reminderName.Equals(REMINDER_NAME))
@@ -219,7 +252,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                 if (!(await certBlob.ExistsAsync() && await keyBlob.ExistsAsync()))
                 {
 
-                    
+
 
                     try
                     {
@@ -242,7 +275,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
                     }
 
-                    
+
 
 
                 }
@@ -284,7 +317,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             await StateManager.SetStateAsync(STATE_PROXY_DATA_NAME, proxies);
             await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
-         
+
 
         }
 

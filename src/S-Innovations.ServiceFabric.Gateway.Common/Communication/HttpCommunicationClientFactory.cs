@@ -21,12 +21,7 @@ namespace SInnovations.ServiceFabric.Gateway.Communication
         public HttpCommunicationClientFactory(Func<HttpCommunicationClient> innerDispatcherProvider, IServicePartitionResolver servicePartitionResolver = null, IEnumerable<IExceptionHandler> exceptionHandlers = null, string traceId = null)
             : base(servicePartitionResolver, exceptionHandlers, traceId)
         {
-            if (innerDispatcherProvider == null)
-            {
-                throw new ArgumentNullException(nameof(innerDispatcherProvider));
-            }
-
-            _innerDispatcherProvider = innerDispatcherProvider;
+            _innerDispatcherProvider = innerDispatcherProvider ?? throw new ArgumentNullException(nameof(innerDispatcherProvider));
         }
 
         protected override void AbortClient(HttpCommunicationClient dispatcher)

@@ -96,17 +96,17 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         public NginxGatewayService(StatelessServiceContext serviceContext, IUnityContainer container, ILoggerFactory factory, StorageConfiguration storage)
             : base(new KestrelHostingServiceOptions
             {
-               // ServiceEndpointName = "PrivateManageServiceEndpoint",
+                // ServiceEndpointName = "PrivateManageServiceEndpoint",
                 GatewayOptions = new GatewayOptions
                 {
                     Key = "NGINX-MANAGER",
                     ReverseProxyLocation = "/manage/",
                     ServerName = "www.earthml.com local.earthml.com",
-                     Ssl = new SslOptions
-                     {
-                         Enabled =true,
-                         SignerEmail ="info@earthml.com"
-                     }
+                    Ssl = new SslOptions
+                    {
+                        Enabled = true,
+                        SignerEmail = "info@earthml.com"
+                    }
                 }
 
             }, serviceContext, factory, container)
@@ -243,11 +243,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
                 sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
-              //  sb.AppendLine($"{tabs}proxy_redirect off;");
+                //  sb.AppendLine($"{tabs}proxy_redirect off;");
                 sb.AppendLine($"{tabs}server_name_in_redirect on;");
                 sb.AppendLine($"{tabs}port_in_redirect off;");
 
-               
+
                 sb.AppendLine($"{tabs}proxy_set_header Upgrade $http_upgrade;");
                 sb.AppendLine($"{tabs}proxy_set_header Connection keep-alive;");
 
@@ -269,7 +269,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         }
 
-        private void launchNginxProcess(string arguments)
+
+
+        private void LaunchNginxProcess(string arguments)
         {
             var codePackage = this.Context.CodePackageActivationContext.CodePackageName;
             var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
@@ -296,7 +298,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         protected override Task OnCloseAsync(CancellationToken cancellationToken)
         {
             if (IsNginxRunning())
-                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+                LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
 
             return base.OnCloseAsync(cancellationToken);
@@ -309,26 +311,35 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         protected override void OnAbort()
         {
             if (IsNginxRunning())
-                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+                LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
 
 
 
             base.OnAbort();
         }
         private DateTimeOffset lastWritten = DateTimeOffset.MinValue;
+
+
+        public async Task DeleteGatewayServiceAsync(string v, CancellationToken cancellationToken)
+        {
+            var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
+            var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
+            List<long> partitions = GetPartitions(actorServiceUri);
+            var serviceProxyFactory = new ServiceProxyFactory();
+
+            var all = new List<GatewayServiceRegistrationData>();
+            foreach (var partition in partitions)
+            {
+                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                await actorService.DeleteGatewayServiceAsync(v,cancellationToken);
+            }
+
+        }
         public async Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync(CancellationToken cancellationToken)
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-
-
-            var partitions = new List<long>();
-            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
-            foreach (var servicePartition in servicePartitionList)
-            {
-                var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
-                partitions.Add(partitionInformation.LowKey);
-            }
+            List<long> partitions = GetPartitions(actorServiceUri);
 
             var serviceProxyFactory = new ServiceProxyFactory();
 
@@ -343,6 +354,20 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             }
             return all;
         }
+
+        private List<long> GetPartitions(Uri actorServiceUri)
+        {
+            var partitions = new List<long>();
+            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
+            foreach (var servicePartition in servicePartitionList)
+            {
+                var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
+                partitions.Add(partitionInformation.LowKey);
+            }
+
+            return partitions;
+        }
+
         public async Task<CertGenerationState> GetCertGenerationStateAsync(string hostname, SslOptions options, CancellationToken token)
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
@@ -423,19 +448,19 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 await gateway.SetupStorageServiceAsync(a.InstanceCount);
                 await WriteConfigAsync(cancellationToken);
 
-                launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+                LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
 
 
 
                 while (true)
                 {
                     if (cancellationToken.IsCancellationRequested)
-                        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
+                        LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s quit");
                     cancellationToken.ThrowIfCancellationRequested();
                     await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
                     if (!IsNginxRunning())
-                        launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
+                        LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\"");
 
                     var allActorsUpdated = await GetLastUpdatedAsync(cancellationToken);
                     if (allActorsUpdated.ContainsKey(gateway.GetActorId().GetLongId()))
@@ -447,7 +472,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                             lastWritten = updated;
                             await WriteConfigAsync(cancellationToken);
 
-                            launchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
+                            LaunchNginxProcess($"-c \"{Path.GetFullPath("nginx.conf")}\" -s reload");
                         }
 
                     }

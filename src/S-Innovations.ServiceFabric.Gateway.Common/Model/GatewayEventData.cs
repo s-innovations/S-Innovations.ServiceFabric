@@ -24,5 +24,11 @@ namespace SInnovations.ServiceFabric.Gateway.Model
 
         [DataMember]
         public SslOptions Ssl { get; set; } = new SslOptions();
+
+        [DataMember]
+        public Uri ServiceName { get; set; }
+
+        [DataMember]
+        public string ServiceVersion { get; set; }
     }
 }

@@ -256,12 +256,14 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                 await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
                 {
-                    Key = $"{Options.GatewayOptions.Key}-{Context.NodeContext.IPAddressOrFQDN}",
+                    Key = $"{Options.GatewayOptions.Key ?? Context.CodePackageActivationContext.GetServiceManifestName()}-{Context.NodeContext.IPAddressOrFQDN}",
                     IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
                     ServerName = Options.GatewayOptions.ServerName,
                     ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
                     Ssl = Options.GatewayOptions.Ssl,
-                    BackendPath = backAddress
+                    BackendPath = backAddress,
+                    ServiceName = Context.ServiceName,
+                    ServiceVersion = Context.CodePackageActivationContext.GetServiceManifestVersion()
                 });
             }
             catch (Exception ex)

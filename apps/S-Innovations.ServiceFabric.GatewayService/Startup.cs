@@ -21,6 +21,7 @@ using SInnovations.ServiceFabric.GatewayService.Actors;
 using Microsoft.Extensions.Primitives;
 using SInnovations.ServiceFabric.GatewayService.Services;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Routing;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
@@ -208,32 +209,7 @@ namespace SInnovations.ServiceFabric.GatewayService
                 app.UseDeveloperExceptionPage();
             }
 
-            app.RunGateway();
-
-        }
-    }
-
-    public static class GatewayExtensions
-    {
-        public static IApplicationBuilder RunGateway(this IApplicationBuilder app)
-        {
-            //If the provider is registered delegate to gateway service, otherwise return 404;
-
-            //app.MapWhen((context) =>
-            //{
-            //    var serviceProviderManager = context.RequestServices.GetService<HttpGatewayServiceManager>();
-
-
-            //    if (serviceProviderManager.HasGatewayServiceInfomation(context))
-            //    {
-            //        return true;
-            //    }
-
-
-            //    return false;
-
-            //}, inner => inner.UseMiddleware<HttpGatewayMiddleware>());
-           // app.UseForwardedHeaders();
+            app.UseForwardedHeaders();
 
             app.Use(async (context, next) =>
             {
@@ -245,33 +221,32 @@ namespace SInnovations.ServiceFabric.GatewayService
                 await next();
             });
 
-            app.Use(async (ctx, next) =>
+
+            app.UseRouter(router =>
             {
-                await next();
+                router.MapGet("services", async (HttpContext context) =>
+                {
+                    var a = context.RequestServices.GetService<NginxGatewayService>();
+
+                    await context.Response.WriteAsync(JToken.FromObject(await a.GetGatewayServicesAsync(context.RequestAborted)).ToString(Formatting.Indented));
+                });
+
+                router.MapDelete("services/{key:string}", async (context) =>
+                {
+                    var a = context.RequestServices.GetService<NginxGatewayService>();
+                    var routeData = context.GetRouteData();
+
+                    await a.DeleteGatewayServiceAsync(context.GetRouteValue("key") as string,context.RequestAborted);
+
+                    context.Response.StatusCode = 204;
+                });
             });
-
-            app.Map("/test", testbuilder =>
-            {
-
-                testbuilder.Use(async (context, next) =>
-               {
-                   var a =context.RequestServices.GetService<NginxGatewayService>();
-
-                   await context.Response.WriteAsync("Hello World!");
-
-                   await context.Response.WriteAsync(JToken.FromObject(await a.GetGatewayServicesAsync(context.RequestAborted)).ToString(Formatting.Indented));
-                   await next();
-               });
-            });
-            //app.Run(context =>
-            //{
-            //    context.Response.StatusCode = 404;
-            //    return Task.FromResult(0);
-            //});
+  
+            
 
             app.UseWelcomePage();
 
-            return app;
         }
     }
+
 }
