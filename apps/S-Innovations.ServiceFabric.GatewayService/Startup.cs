@@ -195,6 +195,7 @@ namespace SInnovations.ServiceFabric.GatewayService
             services.AddSingleton(provider);
             services.AddDefaultHttpRequestDispatcherProvider();
 
+            services.AddRouting();
 
 
         }
