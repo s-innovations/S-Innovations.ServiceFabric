@@ -63,8 +63,13 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                                     GatewayServiceManagerActor.STATE_PROXY_DATA_NAME,
                                     typeof(List<GatewayServiceRegistrationData>),
                                     registrations, StateChangeKind.Update);
+                            var time = new ActorStateChange(
+                                GatewayServiceManagerActor.STATE_LAST_UPDATED_NAME, typeof(DateTimeOffset), DateTimeOffset.UtcNow, StateChangeKind.Update);
 
-                            await this.StateProvider.SaveStateAsync(actor, new[] { changes }, cancellationToken);
+
+                            await this.StateProvider.SaveStateAsync(actor, new[] { changes, time }, cancellationToken);
+
+
                         }
                     }
                 }
