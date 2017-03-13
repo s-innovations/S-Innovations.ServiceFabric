@@ -289,6 +289,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                     certInfo.Completed = true;
                 }
 
+                certInfo.RunAt = DateTimeOffset.UtcNow;
                 await StateManager.SetStateAsync($"cert_{hostname}", certInfo);
 
                 var missing = store.Skip(1).ToList();

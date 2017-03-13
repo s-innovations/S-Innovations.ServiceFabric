@@ -16,5 +16,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Model
         public string HostName { get; set; }
         [DataMember]
         public SslOptions SslOptions { get; set; }
+        [DataMember]
+        public DateTimeOffset? RunAt { get; set; }
     }
 }

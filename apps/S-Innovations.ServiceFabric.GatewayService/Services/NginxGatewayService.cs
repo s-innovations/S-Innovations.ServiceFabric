@@ -382,7 +382,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
                 var state = await actorService.GetCertGenerationInfoAsync(hostname, options, token);
-                if (state != null)
+                if (state != null && state.RunAt.HasValue && state.RunAt.Value > DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14)))
                 {
                     return state;
                 }
