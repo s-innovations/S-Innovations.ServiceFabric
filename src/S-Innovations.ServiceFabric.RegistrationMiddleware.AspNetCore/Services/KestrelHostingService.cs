@@ -66,7 +66,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         }
         public static IUnityContainer ConfigureApplicationInsights(this IUnityContainer container)
         {
-          
+
 
             container.Configure<ApplicationInsights>(container.Resolve<IConfiguration>().GetSection("ApplicationInsights"));
 
@@ -76,7 +76,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                 logConfiguration.WriteTo.ApplicationInsightsTraces(container.Resolve<ApplicationInsights>().InstrumentationKey, Serilog.Events.LogEventLevel.Information);
             });
 
-           
+
 
             return container;
         }
@@ -158,10 +158,14 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             Options = options;
             Container = container;
             _logger = factory.CreateLogger<KestrelHostingService>();
+
+            _logger.LogInformation("Creating " + nameof(KestrelHostingService) + " for {@options}", Options);
         }
 
         protected virtual void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("ConfigureServices of {gatewayKey}", Options.GatewayOptions.Key);
+
             services.AddSingleton(this.Context);
             services.AddSingleton<ServiceContext>(this.Context);
 
@@ -228,45 +232,56 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     new KestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
                     {
                         try {
-                        _logger.LogInformation("building kestrel app for {url}",url);
-                       var context =serviceContext.CodePackageActivationContext;
-                        // ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting WebListener on {url}");
-                        var config = context.GetConfigurationPackageObject("Config");
 
-                        var builder=new WebHostBuilder().UseKestrel()
-                                    .ConfigureServices(ConfigureServices)
-                                    .UseContentRoot(Directory.GetCurrentDirectory());
+                            _logger.LogInformation("building kestrel app for {url} in {gatewayKey}",url,Options.GatewayOptions.Key);
+
+                            var context =serviceContext.CodePackageActivationContext;
+                            var config = context.GetConfigurationPackageObject("Config");
+
+                            var builder=new WebHostBuilder().UseKestrel()
+                                        .ConfigureServices(ConfigureServices)
+                                        .UseContentRoot(Directory.GetCurrentDirectory());
 
                             if (Container.IsRegistered<IConfiguration>())
                             {
+                                 _logger.LogInformation("UseConfiguration for {gatewayKey}", Options.GatewayOptions.Key);
                                 builder.UseConfiguration(Container.Resolve<IConfiguration>());
                             }
 
 
-                        if(config.Settings.Sections.Contains("Environment"))
-                        {
-                            //http://stackoverflow.com/questions/39109666/asp-net-core-environment-variables-not-being-used-when-debugging-through-a-servi
-
-                            var environments =config.Settings.Sections["Environment"];
-                            if(environments.Parameters.Contains("ASPNETCORE_ENVIRONMENT"))
+                            if(config.Settings.Sections.Contains("Environment"))
                             {
+                                //http://stackoverflow.com/questions/39109666/asp-net-core-environment-variables-not-being-used-when-debugging-through-a-servi
 
-                                builder = builder.UseEnvironment(environments.Parameters["ASPNETCORE_ENVIRONMENT"].Value);
+                                
+
+                                var environments =config.Settings.Sections["Environment"];
+                                if(environments.Parameters.Contains("ASPNETCORE_ENVIRONMENT"))
+                                {
+                                    var environment = environments.Parameters["ASPNETCORE_ENVIRONMENT"].Value;
+                                    _logger.LogInformation("UseEnvironment {environment} for {gatewayKey}",environment, Options.GatewayOptions.Key);
+                                    builder = builder.UseEnvironment(environment);
+
+                                }
 
                             }
 
-                        }
+                            if (Container.IsRegistered<ILoggerFactory>())
+                            {
+                                _logger.LogInformation("UseLoggerFactory for {gatewayKey}", Options.GatewayOptions.Key);
+                                builder.UseLoggerFactory(Container.Resolve<ILoggerFactory>());
+                            }
 
-                        ConfigureBuilder(builder);
 
-                        return builder
-                                .UseUrls(url)
-                                .Build();
+                            ConfigureBuilder(builder);
+
+                            return builder.UseUrls(url).Build();
+
                             }catch(Exception ex)
-                        {
-                            _logger.LogWarning(new EventId(),ex,"failed to build app pipeline");
-                            throw;
-                        }
+                            {
+                                _logger.LogWarning(new EventId(),ex,"failed to build app pipeline");
+                                throw;
+                            }
                     }),"kestrel")
             };
         }
