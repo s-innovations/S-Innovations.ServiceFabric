@@ -194,13 +194,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         public Task<List<GatewayServiceRegistrationData>> GetGatewayServicesAsync() => StateManager.GetStateAsync<List<GatewayServiceRegistrationData>>("proxyData");
 
-        //   public Task<DateTimeOffset> GetLastUpdatedAsync() => StateManager.GetOrAddStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.MinValue);
-
+       
         public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
-            if (await StateManager.ContainsStateAsync($"cert_{hostname}"))
-                return;
-
+          
             await StateManager.AddStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options });
 
             await AddHostnameToQueue(hostname);
