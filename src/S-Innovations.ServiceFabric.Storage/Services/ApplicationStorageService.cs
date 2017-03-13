@@ -19,6 +19,7 @@ namespace SInnovations.ServiceFabric.Storage.Services
     public interface IApplicationStorageService : IService
     {
         Task<string> GetApplicationStorageSharedAccessSignature();
+        Task<string> GetApplicationStorageAccountNameAsync();
     }
 
 
@@ -59,8 +60,14 @@ namespace SInnovations.ServiceFabric.Storage.Services
                 ResourceTypes = SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
                 Services = SharedAccessAccountServices.Blob | SharedAccessAccountServices.File | SharedAccessAccountServices.Queue | SharedAccessAccountServices.Table,
                 SharedAccessStartTime = DateTimeOffset.UtcNow,
-                SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddDays(1)
+                SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddDays(14)
             });
+        }
+
+        public async Task<string> GetApplicationStorageAccountNameAsync()
+        {
+            var a = await Storage.GetApplicationStorageAccountAsync();
+            return a.Credentials.AccountName;
         }
     }
 }

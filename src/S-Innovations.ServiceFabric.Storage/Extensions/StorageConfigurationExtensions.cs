@@ -12,6 +12,10 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using SInnovations.ServiceFabric.Storage.Configuration;
 using SInnovations.ServiceFabric.Storage.Services;
 using SInnovations.ServiceFabric.Unity;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace SInnovations.ServiceFabric.Storage.Extensions
 {
@@ -30,6 +34,32 @@ namespace SInnovations.ServiceFabric.Storage.Extensions
 
 
             
+        }
+        public static IServiceCollection AddApplicationStorageDataProtection(this IServiceCollection services, IUnityContainer container, X509Certificate2 cert )
+        {
+            if (container != null)
+            {
+
+                try
+                {
+                    var storage = container.Resolve<IApplicationStorageService>();
+                    var token = storage.GetApplicationStorageSharedAccessSignature().GetAwaiter().GetResult();
+                    var name = storage.GetApplicationStorageAccountNameAsync().GetAwaiter().GetResult();
+                    var a = new CloudStorageAccount(new StorageCredentials(token), name, null, true);
+                    var c = a.CreateCloudBlobClient().GetContainerReference("dataprotection");
+                    c.CreateIfNotExists();
+
+                    services.AddDataProtection()
+                     .ProtectKeysWithCertificate(cert)
+                     .PersistKeysToAzureBlobStorage(c.GetBlockBlobReference("dummy.csrf"));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+
+            return services;
         }
     }
 }
