@@ -343,5 +343,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
             await base.OnActivateAsync();
         }
+
+        public async Task SetLastUpdatedNow()
+        {
+            await StateManager.SetStateAsync(STATE_LAST_UPDATED_NAME, DateTimeOffset.UtcNow);
+        }
     }
 }

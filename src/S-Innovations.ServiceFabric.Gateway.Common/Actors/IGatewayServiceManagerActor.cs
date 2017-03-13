@@ -44,5 +44,7 @@ namespace SInnovations.ServiceFabric.Gateway.Actors
         Task RequestCertificateAsync(string hostname, SslOptions options);
 
         Task SetupStorageServiceAsync(int instanceCount);
+
+        Task SetLastUpdatedNow();
     }
 }

@@ -231,7 +231,11 @@ namespace SInnovations.ServiceFabric.GatewayService
 
                     await context.Response.WriteAsync(JToken.FromObject(await a.GetGatewayServicesAsync(context.RequestAborted)).ToString(Formatting.Indented));
                 });
-
+                router.MapPost("services/update", async (context) =>
+                {
+                    var a = context.RequestServices.GetService<NginxGatewayService>();
+                    await a.SetLastUpdatedAsync(DateTimeOffset.UtcNow,context.RequestAborted);
+                });
                 router.MapDelete("services/{key}", async (context) =>
                 {
                     var a = context.RequestServices.GetService<NginxGatewayService>();

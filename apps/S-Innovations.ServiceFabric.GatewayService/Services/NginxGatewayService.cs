@@ -324,10 +324,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-            List<long> partitions = GetPartitions(actorServiceUri);
+            List<long> partitions = await GetPartitionsAsync(actorServiceUri);
             var serviceProxyFactory = new ServiceProxyFactory();
 
-            var all = new List<GatewayServiceRegistrationData>();
+          
             foreach (var partition in partitions)
             {
                 var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
@@ -339,7 +339,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-            List<long> partitions = GetPartitions(actorServiceUri);
+            List<long> partitions = await GetPartitionsAsync(actorServiceUri);
 
             var serviceProxyFactory = new ServiceProxyFactory();
 
@@ -354,11 +354,11 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             }
             return all;
         }
-
-        private List<long> GetPartitions(Uri actorServiceUri)
+         
+        private async Task<List<long>> GetPartitionsAsync(Uri actorServiceUri)
         {
             var partitions = new List<long>();
-            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
+            var servicePartitionList = await _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri);
             foreach (var servicePartition in servicePartitionList)
             {
                 var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
@@ -372,15 +372,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
         {
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-
-
-            var partitions = new List<long>();
-            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
-            foreach (var servicePartition in servicePartitionList)
-            {
-                var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
-                partitions.Add(partitionInformation.LowKey);
-            }
+            List<long> partitions = await GetPartitionsAsync(actorServiceUri);
 
             var serviceProxyFactory = new ServiceProxyFactory();
 
@@ -402,20 +394,19 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
             return null;
         }
+        public async Task SetLastUpdatedAsync(DateTimeOffset time, CancellationToken token)
+        {
+      
+            var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
+            await gateway.SetLastUpdatedNow();
+           
+        }
         public async Task<IDictionary<long, DateTimeOffset>> GetLastUpdatedAsync(CancellationToken token)
         {
 
             var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
             var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-
-
-            var partitions = new List<long>();
-            var servicePartitionList = _fabricClient.QueryManager.GetPartitionListAsync(actorServiceUri).GetAwaiter().GetResult();
-            foreach (var servicePartition in servicePartitionList)
-            {
-                var partitionInformation = servicePartition.PartitionInformation as Int64RangePartitionInformation;
-                partitions.Add(partitionInformation.LowKey);
-            }
+            List<long> partitions = await GetPartitionsAsync(actorServiceUri);
 
             var serviceProxyFactory = new ServiceProxyFactory();
 
