@@ -197,9 +197,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
        
         public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
-          
-            await StateManager.AddStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options });
-
+             
+                await StateManager.AddOrUpdateStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options, RunAt=DateTimeOffset.UtcNow }, (key,old)=> new CertGenerationState { HostName = hostname, SslOptions = options, RunAt = DateTimeOffset.UtcNow, Completed = old.Completed });
+            
             await AddHostnameToQueue(hostname);
 
             await RegisterReminderAsync(REMINDER_NAME, new byte[0],
@@ -286,7 +286,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                     certInfo.Completed = true;
                 }
 
-                certInfo.RunAt = DateTimeOffset.UtcNow;
+                
                 await StateManager.SetStateAsync($"cert_{hostname}", certInfo);
 
                 var missing = store.Skip(1).ToList();
