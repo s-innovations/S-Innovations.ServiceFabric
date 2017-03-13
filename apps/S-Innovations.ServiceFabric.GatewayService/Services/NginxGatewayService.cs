@@ -277,12 +277,16 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
             var codePath = this.Context.CodePackageActivationContext.GetCodePackageObject(codePackage).Path;
             var res = File.Exists(Path.Combine(codePath, "nginx-1.11.3.exe"));
-            var nginxStartInfo = new ProcessStartInfo(Path.Combine(codePath, "nginx-1.11.3.exe"));
-            nginxStartInfo.WorkingDirectory = codePath;
-            nginxStartInfo.UseShellExecute = false;
-            nginxStartInfo.Arguments = arguments;
-            var nginxProcess = new Process();
-            nginxProcess.StartInfo = nginxStartInfo;
+            var nginxStartInfo = new ProcessStartInfo(Path.Combine(codePath, "nginx-1.11.3.exe"))
+            {
+                WorkingDirectory = codePath,
+                UseShellExecute = false,
+                Arguments = arguments
+            };
+            var nginxProcess = new Process()
+            {
+                StartInfo = nginxStartInfo
+            };
             nginxProcess.Start();
             try
             {

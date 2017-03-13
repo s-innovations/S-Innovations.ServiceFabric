@@ -21,6 +21,8 @@ using SInnovations.ServiceFabric.Unity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ServiceFabric.Services.Client;
 using Serilog;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Remoting;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -79,7 +81,14 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             return container;
         }
 
+        public static IUnityContainer WithServiceProxy<TServiceInterface>(this IUnityContainer container, string serviceName, string listenerName = null)
+            where TServiceInterface : IService
+        {
+            return container.RegisterType<TServiceInterface>(new HierarchicalLifetimeManager(),
+                      new InjectionFactory(c => ServiceProxy.Create<TServiceInterface>(
+                          new Uri(serviceName), listenerName: listenerName)));
 
+        }
         public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
             where TStartup : class
         {
