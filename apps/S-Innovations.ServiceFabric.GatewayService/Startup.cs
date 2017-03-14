@@ -209,19 +209,7 @@ namespace SInnovations.ServiceFabric.GatewayService
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseForwardedHeaders();
-
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out StringValues value))
-                {
-                    context.Request.PathBase = new PathString(value);
-                }
-
-                await next();
-            });
-
+           
 
             app.UseRouter(router =>
             {

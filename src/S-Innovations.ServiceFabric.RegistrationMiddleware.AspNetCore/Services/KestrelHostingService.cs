@@ -23,6 +23,8 @@ using Microsoft.ServiceFabric.Services.Client;
 using Serilog;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting;
+using Microsoft.AspNetCore.HttpOverrides;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Startup;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -141,7 +143,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         }
     }
 
-    public class unityfactory : IServiceProviderFactory<IServiceCollection>{
+    public class UnityServiceProviderFactory : IServiceProviderFactory<IServiceCollection>{
         public IServiceCollection CreateBuilder(IServiceCollection services)
         {
             return new ServiceCollection();
@@ -152,6 +154,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             return containerBuilder.GetServiceFabricServiceProvider();
         }
     }
+
+    
     public class KestrelHostingService : StatelessService
     {
         public Action<IWebHostBuilder> WebBuilderConfiguration { get; set; }
@@ -182,7 +186,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             services.AddSingleton<ServiceContext>(this.Context);
 
             services.AddSingleton(Container);
-            services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new unityfactory());
+            services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory());
+            services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>();
             //services.AddSingleton(new UnityWrapper(this.Container));
 
             //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
