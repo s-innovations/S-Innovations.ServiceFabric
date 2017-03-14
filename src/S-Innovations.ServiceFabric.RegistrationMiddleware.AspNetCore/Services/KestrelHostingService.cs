@@ -140,6 +140,18 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             ScopedContainer.Dispose();
         }
     }
+
+    public class unityfactory : IServiceProviderFactory<IServiceCollection>{
+        public IServiceCollection CreateBuilder(IServiceCollection services)
+        {
+            return new ServiceCollection();
+        }
+
+        public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
+        {
+            return containerBuilder.GetServiceFabricServiceProvider();
+        }
+    }
     public class KestrelHostingService : StatelessService
     {
         public Action<IWebHostBuilder> WebBuilderConfiguration { get; set; }
@@ -170,6 +182,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             services.AddSingleton<ServiceContext>(this.Context);
 
             services.AddSingleton(Container);
+            services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new unityfactory());
             //services.AddSingleton(new UnityWrapper(this.Container));
 
             //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
