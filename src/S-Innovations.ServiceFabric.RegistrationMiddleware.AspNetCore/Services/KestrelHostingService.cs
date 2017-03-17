@@ -143,17 +143,17 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
         }
     }
 
-    public class UnityServiceProviderFactory : IServiceProviderFactory<IServiceCollection>{
-        public IServiceCollection CreateBuilder(IServiceCollection services)
-        {
-            return services;
-        }
+    //public class UnityServiceProviderFactory : IServiceProviderFactory<IServiceCollection>{
+    //    public IServiceCollection CreateBuilder(IServiceCollection services)
+    //    {
+    //        return services;
+    //    }
 
-        public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
-        {
-            return containerBuilder.GetServiceFabricServiceProvider();
-        }
-    }
+    //    public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
+    //    {
+    //        return containerBuilder.GetServiceFabricServiceProvider();
+    //    }
+    //}
 
     
     public class KestrelHostingService : StatelessService
