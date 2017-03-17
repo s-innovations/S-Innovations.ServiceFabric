@@ -146,10 +146,18 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             sb.AppendLine("events {\n\tworker_connections  1024;\n}");
             sb.AppendLine("http {");
 
+
+
             File.WriteAllText("mime.types", WriteMimeTypes(sb, "mime.types").ToString());
 
             sb.AppendLine("\tkeepalive_timeout  65;");
             sb.AppendLine("\tgzip  on;");
+            sb.AppendLine("\tproxy_buffer_size   128k;");
+            sb.AppendLine("\tproxy_buffers   4 256k;");
+            sb.AppendLine("\tproxy_busy_buffers_size   256k;");
+
+           
+            
             {
                 var proxies = await GetGatewayServicesAsync(token);
 

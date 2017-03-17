@@ -146,7 +146,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
     public class UnityServiceProviderFactory : IServiceProviderFactory<IServiceCollection>{
         public IServiceCollection CreateBuilder(IServiceCollection services)
         {
-            return new ServiceCollection();
+            return services;
         }
 
         public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
