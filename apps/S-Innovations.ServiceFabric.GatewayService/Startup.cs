@@ -210,16 +210,6 @@ namespace SInnovations.ServiceFabric.GatewayService
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.Use((ctx, next) =>
-            {
-                var features = ctx.Features;
-                var existingFeature = features.Get<IServiceProvidersFeature>();
-
-
-                return next();
-            });
-
             app.UseRouter(router =>
             {
                 router.MapGet("services", async (HttpContext context) =>

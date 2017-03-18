@@ -84,9 +84,6 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
     /// </summary>
     public sealed class NginxGatewayService : KestrelHostingService<Startup>
     {
-
-
-
         private string nginxProcessName = "";
 
         private readonly StorageConfiguration Storage;
