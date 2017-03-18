@@ -57,7 +57,7 @@ namespace SInnovations.ServiceFabric.GatewayService
                 container.WithStatelessService<NginxGatewayService>("GatewayServiceType");
                 container.WithStatelessService<ApplicationStorageService>("ApplicationStorageServiceType");
 
-                container.WithActor<GatewayServiceManagerActor, ManyfoldActorService>((context, actorType, factory) => new ManyfoldActorService(context, actorType, factory));
+                container.WithActor<GatewayServiceManagerActor, GatewayServiceManagerActorService>((context, actorType, factory) => new GatewayServiceManagerActorService(context, actorType, factory));
 
 
                 Thread.Sleep(Timeout.Infinite);

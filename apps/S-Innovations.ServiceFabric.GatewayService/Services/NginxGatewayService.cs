@@ -27,6 +27,8 @@ using SInnovations.ServiceFabric.Storage.Configuration;
 using SInnovations.ServiceFabric.GatewayService.Actors;
 using Microsoft.ServiceFabric.Services.Client;
 using SInnovations.ServiceFabric.GatewayService.Model;
+using SInnovations.ServiceFabric.Gateway.Common.Model;
+using SInnovations.ServiceFabric.Gateway.Common.Actors;
 
 namespace SInnovations.ServiceFabric.GatewayService.Services
 {
@@ -342,7 +344,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
           
             foreach (var partition in partitions)
             {
-                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
                 await actorService.DeleteGatewayServiceAsync(v,cancellationToken);
             }
 
@@ -358,7 +360,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var all = new List<GatewayServiceRegistrationData>();
             foreach (var partition in partitions)
             {
-                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
                 var state = await actorService.GetGatewayServicesAsync(cancellationToken);
                 all.AddRange(state);
@@ -391,7 +393,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var actors = new Dictionary<long, DateTimeOffset>();
             foreach (var partition in partitions)
             {
-                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
                 var state = await actorService.GetCertGenerationInfoAsync(hostname, options, token);
                 if (state != null && state.RunAt.HasValue && state.RunAt.Value > DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14)))
@@ -425,7 +427,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var actors = new Dictionary<long, DateTimeOffset>();
             foreach (var partition in partitions)
             {
-                var actorService = serviceProxyFactory.CreateServiceProxy<IManyfoldActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
                 var counts = await actorService.GetLastUpdatedAsync(token);
                 foreach (var count in counts)
