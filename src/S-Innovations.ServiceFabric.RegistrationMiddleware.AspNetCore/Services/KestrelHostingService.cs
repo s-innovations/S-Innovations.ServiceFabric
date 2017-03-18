@@ -155,7 +155,24 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
     //    }
     //}
 
-    
+
+    public class CustomKestrelCommunicationListener : KestrelCommunicationListener
+    {
+        private readonly ServiceContext _serviceContext;
+        public CustomKestrelCommunicationListener(ServiceContext serviceContext, string serviceEdpoint, Func<string, IWebHost> build) : base(serviceContext,serviceEdpoint, build)
+        {
+            _serviceContext = serviceContext;
+        }
+
+        public override async Task<string> OpenAsync(CancellationToken cancellationToken)
+        {
+            var url = await base.OpenAsync(cancellationToken).ConfigureAwait(false);
+            
+            return url.Replace("[::]", this._serviceContext.NodeContext.IPAddressOrFQDN);
+        }
+    }
+
+
     public class KestrelHostingService : StatelessService
     {
         public Action<IWebHostBuilder> WebBuilderConfiguration { get; set; }
@@ -216,27 +233,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             //}
         }
 
-        private ServiceLifetime GetLifeTime(ContainerRegistration registration)
-        {
-            if (registration.LifetimeManagerType == typeof(ContainerControlledLifetimeManager))
-            {
-                return ServiceLifetime.Singleton;
-            }
-            else if (registration.LifetimeManagerType == typeof(HierarchicalLifetimeManager))
-            {
-                return ServiceLifetime.Scoped;
-            }
-            else if (registration.LifetimeManagerType == typeof(TransientLifetimeManager))
-            {
-                return ServiceLifetime.Transient;
-            }
-
-            throw new NotImplementedException("tpye not supported");
-        }
-
-
-
-
+        
         /// <summary>
         /// Optional override to create listeners (like tcp, http) for this service instance.
         /// </summary>
@@ -247,7 +244,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             {
                 new ServiceInstanceListener(serviceContext =>
 
-                    new KestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
+                    new CustomKestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
                     {
                         try {
 
