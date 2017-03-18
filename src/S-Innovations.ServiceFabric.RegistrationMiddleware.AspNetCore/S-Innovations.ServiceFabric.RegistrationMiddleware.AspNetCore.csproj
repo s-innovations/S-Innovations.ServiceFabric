@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="2.4.164-preview" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017031811"></PackageReference>
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017031812"></PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="1.1.1" />
   </ItemGroup>
 
