@@ -22,6 +22,8 @@ using Microsoft.Extensions.Primitives;
 using SInnovations.ServiceFabric.GatewayService.Services;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Practices.Unity;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
@@ -195,9 +197,8 @@ namespace SInnovations.ServiceFabric.GatewayService
             services.AddSingleton(provider);
             services.AddDefaultHttpRequestDispatcherProvider();
 
-            services.AddRouting();
-                
-
+            services.AddRouting();         
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -209,7 +210,15 @@ namespace SInnovations.ServiceFabric.GatewayService
             {
                 app.UseDeveloperExceptionPage();
             }
-           
+
+            app.Use((ctx, next) =>
+            {
+                var features = ctx.Features;
+                var existingFeature = features.Get<IServiceProvidersFeature>();
+
+
+                return next();
+            });
 
             app.UseRouter(router =>
             {

@@ -7,6 +7,7 @@
     <Parameter Name="ApplicationStorageAccountId" DefaultValue="" />
     <Parameter Name="AzureResourceManagerCertThumbrint" DefaultValue="C03BB5A6410741CDD2927B4FF88C3E67215A393B" />
     <Parameter Name="Azure.KeyVault.Uri" DefaultValue="https://earthml-core-k3ci.vault.azure.net/" />
+    <Parameter Name="ASPNETCORE_ENVIRONMENT" DefaultValue="Development" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -25,6 +26,9 @@
         </Settings>
       </ConfigOverride>
     </ConfigOverrides>
+    <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[ASPNETCORE_ENVIRONMENT]" />
+    </EnvironmentOverrides>
     <Policies>
       <RunAsPolicy CodePackageRef="Code" UserRef="Admin" EntryPointType="All" />
     </Policies>

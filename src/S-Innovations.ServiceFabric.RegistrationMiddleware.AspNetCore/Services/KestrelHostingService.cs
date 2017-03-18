@@ -186,7 +186,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             services.AddSingleton<ServiceContext>(this.Context);
 
             services.AddSingleton(Container);
-            services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory());
+            services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory(Container));
             services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>();
             //services.AddSingleton(new UnityWrapper(this.Container));
 

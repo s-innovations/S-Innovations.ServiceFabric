@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>S-Innovations.ServiceFabric.GatewayService</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -24,9 +24,11 @@
     <ProjectReference Include="..\..\src\S-Innovations.ServiceFabric.Gateway.Common\S-Innovations.ServiceFabric.Gateway.Common.csproj" />
     <ProjectReference Include="..\..\src\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\S-Innovations.ServiceFabric.Storage\S-Innovations.ServiceFabric.Storage.csproj" />
+    <!--<ProjectReference Include="C:\dev\sinnovations\S-Innovations.ServiceFabric.Unity\src\S-Innovations.ServiceFabric.Unity\S-Innovations.ServiceFabric.Unity.csproj" />-->
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Routing" Version="1.1.1" />
@@ -40,7 +42,6 @@
     <PackageReference Include="Microsoft.ServiceFabric.Data" Version="2.4.164" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="2.4.164" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="5.4.164" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017031701" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="2.4.164-preview" />
     <PackageReference Include="Unity" Version="4.0.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="2.4.164" />
@@ -52,6 +53,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="1.1.1" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-*"></PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
