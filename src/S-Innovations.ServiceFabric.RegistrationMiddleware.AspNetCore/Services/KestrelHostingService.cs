@@ -340,7 +340,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     ServerName = Options.GatewayOptions.ServerName,
                     ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
                     Ssl = Options.GatewayOptions.Ssl,
-                    BackendPath = backAddress,
+                    BackendPath = backAddress.Replace("[::]", Context.NodeContext.IPAddressOrFQDN),
                     ServiceName = Context.ServiceName,
                     ServiceVersion = Context.CodePackageActivationContext.GetServiceManifestVersion()
                 });
