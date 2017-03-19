@@ -25,152 +25,23 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.AspNetCore.HttpOverrides;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Startup;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Model;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Communication;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
 
-    public class GatewayOptions
-    {
-        public string Key { get; set; }
-        public string ReverseProxyLocation { get; set; }
-        public string ServerName { get; set; }
-        public SslOptions Ssl { get; set; } = new SslOptions();
-    }
-    public class KestrelHostingServiceOptions
-    {
-        //  public string ReverseProxyLocation { get; set; }
-        public string ServiceEndpointName { get; set; }
+    
+   
 
-        public GatewayOptions GatewayOptions { get; set; } = new GatewayOptions();
-    }
+    
 
-    public class ApplicationInsights
-    {
-        public string InstrumentationKey { get; set; }
+   
 
-    }
+   
+   
 
-    public static class KestrelHostingExtensions
-    {
-        public static IUnityContainer ConfigureSerilogging(this IUnityContainer container, Action<LoggerConfiguration> configure)
-        {
-            if (!container.IsRegistered<LoggerConfiguration>())
-            {
-
-                container.RegisterInstance(new LoggerConfiguration());
-                container.RegisterType<ILoggerFactory>(new ContainerControlledLifetimeManager(),
-                     new InjectionFactory((c) => new LoggerFactory().AddSerilog(c.Resolve<LoggerConfiguration>().CreateLogger())));
-            }
-
-            configure(container.Resolve<LoggerConfiguration>());
-
-            return container;
-        }
-        public static IUnityContainer ConfigureApplicationInsights(this IUnityContainer container)
-        {
-
-
-            container.Configure<ApplicationInsights>(container.Resolve<IConfiguration>().GetSection("ApplicationInsights"));
-
-            container.ConfigureSerilogging((logConfiguration) =>
-            {
-
-                logConfiguration.WriteTo.ApplicationInsightsTraces(container.Resolve<ApplicationInsights>().InstrumentationKey, Serilog.Events.LogEventLevel.Information);
-            });
-
-
-
-            return container;
-        }
-
-        public static IUnityContainer WithServiceProxy<TServiceInterface>(this IUnityContainer container, string serviceName, string listenerName = null)
-            where TServiceInterface : IService
-        {
-            return container.RegisterType<TServiceInterface>(new HierarchicalLifetimeManager(),
-                      new InjectionFactory(c => ServiceProxy.Create<TServiceInterface>(
-                          new Uri(serviceName), listenerName: listenerName)));
-
-        }
-        public static IUnityContainer WithKestrelHosting<TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
-            where TStartup : class
-        {
-            return container.WithKestrelHosting<KestrelHostingService<TStartup>, TStartup>(serviceType, options);
-        }
-
-        public static IUnityContainer WithKestrelHosting<THostingService, TStartup>(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options)
-          where THostingService : KestrelHostingService<TStartup>
-          where TStartup : class
-        {
-
-            container.WithStatelessService<THostingService>(serviceType, child => { child.RegisterInstance(options); });
-            return container;
-        }
-
-        public static IUnityContainer WithKestrelHosting(this IUnityContainer container, string serviceType, KestrelHostingServiceOptions options, Action<IWebHostBuilder> builder)
-        {
-            container.WithStatelessService<KestrelHostingService>(serviceType, child =>
-            {
-                child.RegisterInstance(options);
-                child.RegisterType<KestrelHostingService>(new InjectionProperty("WebBuilderConfiguration", builder));
-            });
-
-            return container;
-        }
-    }
-
-    public interface IUnityWrapper
-    {
-        IUnityContainer ScopedContainer
-        {
-            get;
-        }
-    }
-    public class ScopeWrap
-    {
-
-    }
-    public class UnityWrapper : IUnityWrapper, IDisposable
-    {
-        public UnityWrapper(IUnityContainer Parent)
-        {
-            ScopedContainer = Parent.CreateChildContainer();
-        }
-        public IUnityContainer ScopedContainer { get; set; }
-
-        public void Dispose()
-        {
-            ScopedContainer.Dispose();
-        }
-    }
-
-    //public class UnityServiceProviderFactory : IServiceProviderFactory<IServiceCollection>{
-    //    public IServiceCollection CreateBuilder(IServiceCollection services)
-    //    {
-    //        return services;
-    //    }
-
-    //    public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
-    //    {
-    //        return containerBuilder.GetServiceFabricServiceProvider();
-    //    }
-    //}
-
-
-    public class CustomKestrelCommunicationListener : KestrelCommunicationListener
-    {
-        private readonly ServiceContext _serviceContext;
-        public CustomKestrelCommunicationListener(ServiceContext serviceContext, string serviceEdpoint, Func<string, IWebHost> build) : base(serviceContext,serviceEdpoint, build)
-        {
-            _serviceContext = serviceContext;
-        }
-
-        public override async Task<string> OpenAsync(CancellationToken cancellationToken)
-        {
-            var url = await base.OpenAsync(cancellationToken).ConfigureAwait(false);
-            
-            return url.Replace("[::]", this._serviceContext.NodeContext.IPAddressOrFQDN);
-        }
-    }
+    
 
 
     public class KestrelHostingService : StatelessService
@@ -205,32 +76,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             services.AddSingleton(Container);
             services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory(Container));
             services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>();
-            //services.AddSingleton(new UnityWrapper(this.Container));
-
-            //   services.AddScoped<IUnityContainer>(p => p.GetService<IUnityWrapper>()?.ScopedContainer ?? p.GetService<UnityWrapper>().ScopedContainer);
-            // services.AddScoped<IUnityWrapper>((p)=>new UnityWrapper(p.GetService<IUnityContainer>()));  
-            //    services.AddScoped<IUnityContainer>(p => p.GetService<ScopeWrapper>().ScopedContainer);
-
-            //foreach (var registration in Container.Registrations)
-            //{
-            //    if (registration.RegisteredType == typeof(IEnumerable<>))
-            //    {
-
-            //    }
-            //    else if (registration.MappedToType == registration.RegisteredType)
-            //    {
-
-            //        services.AddSingleton(Container.Resolve(registration.RegisteredType));
-            //    }
-            //    else if (registration.LifetimeManagerType == typeof(ContainerControlledLifetimeManager))
-            //    {
-            //        services.AddSingleton(Container.Resolve(registration.RegisteredType));
-            //    }
-            //    else
-            //    {
-            //        services.Add(new ServiceDescriptor(registration.RegisteredType, registration.MappedToType, GetLifeTime(registration)));
-            //    }
-            //}
+           
         }
 
         
@@ -325,11 +171,6 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                 }
 
 
-                // var resolver = ServicePartitionResolver.GetDefault();
-                //  var fabricClient = new FabricClient();
-                //  var servicse = fabricClient.QueryManager.GetPartitionListAsync()
-                // var a = this.GetAddresses();
-                //  Console.WriteLine(string.Join(",", a.Select(k => k.Key + k.Value)));
                 await base.OnOpenAsync(cancellationToken);
 
 
@@ -340,7 +181,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                     ServerName = Options.GatewayOptions.ServerName,
                     ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
                     Ssl = Options.GatewayOptions.Ssl,
-                    BackendPath = backAddress.Replace("[::]", Context.NodeContext.IPAddressOrFQDN),
+                    BackendPath = backAddress,
                     ServiceName = Context.ServiceName,
                     ServiceVersion = Context.CodePackageActivationContext.GetServiceManifestVersion()
                 });

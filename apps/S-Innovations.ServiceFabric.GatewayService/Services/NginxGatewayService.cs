@@ -29,6 +29,7 @@ using Microsoft.ServiceFabric.Services.Client;
 using SInnovations.ServiceFabric.GatewayService.Model;
 using SInnovations.ServiceFabric.Gateway.Common.Model;
 using SInnovations.ServiceFabric.Gateway.Common.Actors;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Model;
 
 namespace SInnovations.ServiceFabric.GatewayService.Services
 {

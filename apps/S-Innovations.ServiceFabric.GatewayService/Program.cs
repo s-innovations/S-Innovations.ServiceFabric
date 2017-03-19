@@ -14,6 +14,7 @@ using SInnovations.ServiceFabric.Storage.Extensions;
 using SInnovations.ServiceFabric.Storage.Services;
 using SInnovations.ServiceFabric.Unity;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Extensions;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
