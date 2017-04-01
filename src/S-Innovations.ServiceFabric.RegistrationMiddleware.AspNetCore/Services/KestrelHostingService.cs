@@ -90,10 +90,10 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
             {
                 new ServiceInstanceListener(serviceContext =>
 
-                    new CustomKestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, url =>
+                    new CustomKestrelCommunicationListener(serviceContext, Options.ServiceEndpointName, (url,listener) =>
                     {
                         try {
-
+                          
                             _logger.LogInformation("building kestrel app for {url} in {gatewayKey}",url,Options.GatewayOptions.Key);
 
                             var context =serviceContext.CodePackageActivationContext;
@@ -101,7 +101,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                             var builder=new WebHostBuilder().UseKestrel()
                                         .ConfigureServices(ConfigureServices)
-                                        .UseContentRoot(Directory.GetCurrentDirectory());
+                                        .UseContentRoot(Directory.GetCurrentDirectory())
+                                        .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl);
 
                             if (Container.IsRegistered<IConfiguration>())
                             {

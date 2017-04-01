@@ -14,7 +14,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Communica
     public class CustomKestrelCommunicationListener : KestrelCommunicationListener
     {
         private readonly ServiceContext _serviceContext;
-        public CustomKestrelCommunicationListener(ServiceContext serviceContext, string serviceEdpoint, Func<string, IWebHost> build) : base(serviceContext, serviceEdpoint, build)
+        public CustomKestrelCommunicationListener(ServiceContext serviceContext, string serviceEdpoint, Func<string, AspNetCoreCommunicationListener, IWebHost> build) : base(serviceContext, serviceEdpoint, build)
         {
             _serviceContext = serviceContext;
         }

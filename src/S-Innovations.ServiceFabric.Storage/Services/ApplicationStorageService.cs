@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Fabric;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.ServiceFabric.Services.Communication.FabricTransport.Runtime;
-using Microsoft.ServiceFabric.Services.Communication.Runtime;
+﻿using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting;
-using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
-using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.WindowsAzure.Storage;
 using SInnovations.ServiceFabric.Storage.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Fabric;
+using System.Threading.Tasks;
 
 namespace SInnovations.ServiceFabric.Storage.Services
 {
