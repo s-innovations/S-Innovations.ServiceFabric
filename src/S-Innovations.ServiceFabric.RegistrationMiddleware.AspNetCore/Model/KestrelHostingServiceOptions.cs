@@ -12,5 +12,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Model
         public string ServiceEndpointName { get; set; }
 
         public GatewayOptions GatewayOptions { get; set; } = new GatewayOptions();
+
+        public ICollection<GatewayOptions> AdditionalGateways { get; set; } = new List<GatewayOptions>();
     }
 }

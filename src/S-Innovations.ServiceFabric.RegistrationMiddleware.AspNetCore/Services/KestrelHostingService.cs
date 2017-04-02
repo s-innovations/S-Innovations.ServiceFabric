@@ -173,19 +173,13 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
 
                 await base.OnOpenAsync(cancellationToken);
+                
+                await RegisterGatewayServiceAsync(gateway, backAddress, Options.GatewayOptions);
 
-
-                await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
+                foreach (var gw in Options.AdditionalGateways)
                 {
-                    Key = $"{Options.GatewayOptions.Key ?? Context.CodePackageActivationContext.GetServiceManifestName()}-{Context.NodeContext.IPAddressOrFQDN}",
-                    IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
-                    ServerName = Options.GatewayOptions.ServerName,
-                    ReverseProxyLocation = Options.GatewayOptions.ReverseProxyLocation ?? "/",
-                    Ssl = Options.GatewayOptions.Ssl,
-                    BackendPath = backAddress,
-                    ServiceName = Context.ServiceName,
-                    ServiceVersion = Context.CodePackageActivationContext.GetServiceManifestVersion()
-                });
+                    await RegisterGatewayServiceAsync(gateway, backAddress, gw);
+                }
             }
             catch (Exception ex)
             {
@@ -193,6 +187,21 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                 throw;
             }
 
+        }
+
+        private async Task RegisterGatewayServiceAsync(IGatewayServiceManagerActor gateway, string backAddress, GatewayOptions gw)
+        {
+            await gateway.RegisterGatewayServiceAsync(new GatewayServiceRegistrationData
+            {
+                Key = $"{gw.Key ?? Context.CodePackageActivationContext.GetServiceManifestName()}-{Context.NodeContext.IPAddressOrFQDN}",
+                IPAddressOrFQDN = Context.NodeContext.IPAddressOrFQDN,
+                ServerName = gw.ServerName,
+                ReverseProxyLocation = gw.ReverseProxyLocation ?? "/",
+                Ssl = gw.Ssl,
+                BackendPath = backAddress,
+                ServiceName = Context.ServiceName,
+                ServiceVersion = Context.CodePackageActivationContext.GetServiceManifestVersion()
+            });
         }
     }
     /// <summary>
