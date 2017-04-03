@@ -257,7 +257,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                     if (!string.IsNullOrEmpty(uri.AbsolutePath))
                     {
-                        sb.AppendLine($"{tabs}rewrite ^ {uri.AbsolutePath}/$1 break;");
+                        sb.AppendLine($"{tabs}rewrite ^ {uri.AbsolutePath}$uri break;");
                     }
 
                     sb.AppendLine($"{tabs}proxy_pass {uri.GetLeftPart(UriPartial.Authority)};");
