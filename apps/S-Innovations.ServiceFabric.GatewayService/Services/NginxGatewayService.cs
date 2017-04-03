@@ -250,7 +250,24 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var tabs = string.Join("", Enumerable.Range(0, level + 1).Select(r => "\t"));
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
-                sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
+                // rewrite ^ /268be5f6-90b1-4aa1-9eac-2225d8f7ab29/131356467681395031/$1 break;
+                if (location.StartsWith("~"))
+                {
+                    var uri = new Uri(url);
+
+                    if (!string.IsNullOrEmpty(uri.AbsolutePath))
+                    {
+                        sb.AppendLine($"{tabs}rewrite ^ {uri.AbsolutePath}/$1 break;");
+                    }
+
+                    sb.AppendLine($"{tabs}proxy_pass {uri.GetLeftPart(UriPartial.Authority)};");
+                }
+                else
+                {
+                    sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
+                }
+
+               
                 //  sb.AppendLine($"{tabs}proxy_redirect off;");
                 sb.AppendLine($"{tabs}server_name_in_redirect on;");
                 sb.AppendLine($"{tabs}port_in_redirect off;");
