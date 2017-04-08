@@ -99,9 +99,9 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             var context =serviceContext.CodePackageActivationContext;
                             var config = context.GetConfigurationPackageObject("Config");
 
-                            var builder=new WebHostBuilder().UseKestrel()
-                                    .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
+                            var builder=new WebHostBuilder().UseKestrel()                                    
                                     .ConfigureServices(ConfigureServices)
+                                    .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
                                     .UseContentRoot(Directory.GetCurrentDirectory());
                                        
 
