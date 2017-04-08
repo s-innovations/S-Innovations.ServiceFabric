@@ -13,19 +13,19 @@ Each service provider (Service applications) can self register and expose themse
 ## Goal
 The goal for this project is
 
-- [] to make a Service Fabric Application that can be the public endpoint of microservices and provide as little friction as possible when new services are added.
-- [] make it easy adorptable for new startups/platforms with key incredients: IdentityServer, Storage API and its own little provider manager running in the cluster.
-- [] get som adorption and provide a cashflow back. I dont know how yet, but looking at https://liberapay.com/
+- [ ] to make a Service Fabric Application that can be the public endpoint of microservices and provide as little friction as possible when new services are added.
+- [ ] make it easy adorptable for new startups/platforms with key incredients: IdentityServer, Storage API and its own little provider manager running in the cluster.
+- [ ] get som adorption and provide a cashflow back. I dont know how yet, but looking at https://liberapay.com/
 
 ## TODO
 - [x] Prefix Path matching
 - [x] Add websocket support to reverse proxy (Solved due to change to nginx over writing my own proxy)
 - [x] Resource Provider Path Matching
-- [] Examples of applications
-- [] Rules for precendence when multiply service forwards are possible.
-- [] Migrate S-Innovations.Identity to Idsvr4 and expose it on /idsrv prefix
-- [] Migrate S-Innovations.MultitenantStorage to this architecture
-- [] Management Endpoint to control self registered services
+- [ ] Examples of applications
+- [ ] Rules for precendence when multiply service forwards are possible.
+- [ ] Migrate S-Innovations.Identity to Idsvr4 and expose it on /idsrv prefix
+- [ ] Migrate S-Innovations.MultitenantStorage to this architecture
+- [ ] Management Endpoint to control self registered services
 
 
 
