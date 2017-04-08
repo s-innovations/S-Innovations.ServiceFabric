@@ -85,6 +85,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
     /// </summary>
     public sealed class NginxGatewayService : KestrelHostingService<Startup>
     {
+        private const string nginxVersion = "nginx-1.11.13.exe";
         private string nginxProcessName = "";
 
         private readonly StorageConfiguration Storage;
@@ -301,8 +302,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             var codePackage = this.Context.CodePackageActivationContext.CodePackageName;
             var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
             var codePath = this.Context.CodePackageActivationContext.GetCodePackageObject(codePackage).Path;
-            var res = File.Exists(Path.Combine(codePath, "nginx-1.11.3.exe"));
-            var nginxStartInfo = new ProcessStartInfo(Path.Combine(codePath, "nginx-1.11.3.exe"))
+            var res = File.Exists(Path.Combine(codePath, nginxVersion));
+            var nginxStartInfo = new ProcessStartInfo(Path.Combine(codePath, nginxVersion))
             {
                 WorkingDirectory = codePath,
                 UseShellExecute = false,

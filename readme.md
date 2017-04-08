@@ -6,9 +6,9 @@
 
 #S-Innovations ServiceFabric Gateway and Architecture Overview
 
-My oppionated service fabric gateway solution that will provide delegation to microservices. This application is a gateway with nuget packages to with support microservices hosted in AspNetCore and Owin based pipeline. 
+My oppionated service fabric gateway solution that will provide delegation to microservices.
 
-The gateway is monitoring other SF services that reply successfull on `/sf-gateway-metadata` over http. The microservice endpoints can provide metadata about which url prefixes it wants forwarded from the gateway.
+Each service provider (Service applications) can self register and expose themself without modification or redeployment to the gateway.
 
 ## Goal
 The goal for this project is
@@ -19,11 +19,13 @@ The goal for this project is
 
 ## TODO
 - [x] Prefix Path matching
-- [] Add websocket support to reverse proxy
-- [] Resource Provider Path Matching
+- [x] Add websocket support to reverse proxy (Solved due to change to nginx over writing my own proxy)
+- [x] Resource Provider Path Matching
+- [] Examples of applications
 - [] Rules for precendence when multiply service forwards are possible.
 - [] Migrate S-Innovations.Identity to Idsvr4 and expose it on /idsrv prefix
 - [] Migrate S-Innovations.MultitenantStorage to this architecture
+- [] Management Endpoint to control self registered services
 
 
 
@@ -58,7 +60,3 @@ Part of the architecture is a data service that instead of resource groups will 
 All requests that do not go to a provider, ect `/subscription/{guid}/worksets/{worksetname}/files`  will be picked up by this service and the essense of it is that it splis a azure storage account between subscriptions. 
 The service also allows the normal .Net for Azure Storage Clients to be used with small customizations. Last but properly the feature I feel strongest about in the data service is that it translates all the XML to json, making it super easy to use from SPAs.
 
-
-
-
-#doing some pull requests changes with github
