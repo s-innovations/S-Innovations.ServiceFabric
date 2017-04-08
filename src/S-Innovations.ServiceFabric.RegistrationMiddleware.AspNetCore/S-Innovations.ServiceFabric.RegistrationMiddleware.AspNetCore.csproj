@@ -24,11 +24,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ServiceFabric" Version="5.5.216" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="2.5.216" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017040101"></PackageReference>
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017040801"></PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="1.1.1" />
   </ItemGroup>
 
