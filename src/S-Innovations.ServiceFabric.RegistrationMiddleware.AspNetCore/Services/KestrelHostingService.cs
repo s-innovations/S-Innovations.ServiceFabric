@@ -100,8 +100,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             var config = context.GetConfigurationPackageObject("Config");
 
                             var builder=new WebHostBuilder().UseKestrel()
-                                .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
                                 .ConfigureServices(ConfigureServices)
+                                .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)                              
                                 .UseContentRoot(Directory.GetCurrentDirectory());
                                        
 
