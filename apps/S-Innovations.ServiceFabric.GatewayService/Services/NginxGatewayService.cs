@@ -284,8 +284,13 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Server     $host;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Proto      $scheme;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Path       $request_uri;");
-                if (!location.Trim().StartsWith("~"))
+                if (location.Trim().StartsWith("~"))
+                    sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   /;");
+                else
+                {
                     sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   {location};");
+           
+                }
 
                 sb.AppendLine($"{tabs}proxy_cache_bypass $http_upgrade;");
             }
