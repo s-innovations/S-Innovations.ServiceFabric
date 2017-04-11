@@ -42,8 +42,11 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
    
 
     
-
-
+    
+    public class KestrelHostingAddresss
+    {
+        public string Url { get; set; }
+    }
     public class KestrelHostingService : StatelessService
     {
         public Action<IWebHostBuilder> WebBuilderConfiguration { get; set; }
@@ -72,6 +75,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
             services.AddSingleton(this.Context);
             services.AddSingleton<ServiceContext>(this.Context);
+            services.AddSingleton(this);
 
             services.AddSingleton(Container);
             services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory(Container));
@@ -96,6 +100,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                           
                             _logger.LogInformation("building kestrel app for {url} in {gatewayKey}",url,Options.GatewayOptions.Key);
 
+                            
+
                             var context =serviceContext.CodePackageActivationContext;
                             var config = context.GetConfigurationPackageObject("Config");
 
@@ -103,8 +109,14 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                                 .ConfigureServices(ConfigureServices)
                                 .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)                              
                                 .UseContentRoot(Directory.GetCurrentDirectory());
-                                       
 
+
+                            builder.ConfigureServices((services) =>
+                            {
+                                services.AddSingleton(listener);                                
+                                services.AddSingleton((sp)=> new KestrelHostingAddresss{Url = this.GetAddresses()["kestrel"]  });
+                            });
+                            
                             if (Container.IsRegistered<IConfiguration>())
                             {
                                  _logger.LogInformation("UseConfiguration for {gatewayKey}", Options.GatewayOptions.Key);
