@@ -151,14 +151,14 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
             File.WriteAllText("mime.types", WriteMimeTypes(sb, "mime.types").ToString());
 
-            sb.AppendLine("\tkeepalive_timeout  65;");
-            sb.AppendLine("\tgzip  on;");
-            sb.AppendLine("\tproxy_buffer_size   128k;");
-            sb.AppendLine("\tproxy_buffers   4 256k;");
-            sb.AppendLine("\tproxy_busy_buffers_size   256k;");
+            sb.AppendLine("\tkeepalive_timeout          65;");
+            sb.AppendLine("\tgzip                       on;");
+            sb.AppendLine("\tproxy_buffer_size          128k;");
+            sb.AppendLine("\tproxy_buffers              4 256k;");
+            sb.AppendLine("\tproxy_busy_buffers_size    256k;");
+          
 
-           
-            
+
             {
                 var proxies = await GetGatewayServicesAsync(token);
 
@@ -276,7 +276,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                 sb.AppendLine($"{tabs}proxy_set_header Upgrade $http_upgrade;");
                 sb.AppendLine($"{tabs}proxy_set_header Connection keep-alive;");
-
+                //
                 sb.AppendLine($"{tabs}proxy_set_header Host					  $host;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Real-IP              $remote_addr;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-For        $proxy_add_x_forwarded_for;");
@@ -284,6 +284,10 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Server     $host;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Proto      $scheme;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Path       $request_uri;");
+
+                sb.AppendLine($"{tabs}proxy_connect_timeout                   3s;");
+
+
                 if (location.Trim().StartsWith("~"))
                     sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   /;");
                 else
