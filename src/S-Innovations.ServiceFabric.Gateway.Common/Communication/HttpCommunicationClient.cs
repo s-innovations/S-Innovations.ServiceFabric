@@ -10,7 +10,7 @@ namespace SInnovations.ServiceFabric.Gateway.Communication
 {
 
     public class HttpCommunicationClient : HttpClient, ICommunicationClient
-    {
+    {  
         public HttpCommunicationClient()
             : base(new HttpClientHandler() { AllowAutoRedirect = false, UseCookies = false })
         {
@@ -23,16 +23,16 @@ namespace SInnovations.ServiceFabric.Gateway.Communication
 
         public HttpCommunicationClient(HttpMessageHandler handler, bool disposeHandler)
             : base(handler, disposeHandler)
-        {
+        {       
         }
 
         #region ICommunicationClient
 
-        string ICommunicationClient.ListenerName { get; set; }
+        public string ListenerName { get; set; }
 
-        ResolvedServiceEndpoint ICommunicationClient.Endpoint { get; set; }
+        public ResolvedServiceEndpoint Endpoint { get; set; }
 
-        ResolvedServicePartition ICommunicationClient.ResolvedServicePartition { get; set; }
+        public ResolvedServicePartition ResolvedServicePartition { get; set; }
 
         #endregion ICommunicationClient
     }
