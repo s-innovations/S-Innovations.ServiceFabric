@@ -290,7 +290,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 {
                     var uri = new Uri(url);
 
-                    if (!string.IsNullOrEmpty(uri.AbsolutePath))
+                    if (!string.IsNullOrEmpty(uri.AbsolutePath?.TrimEnd('/')))
                     {
                         sb.AppendLine($"{tabs}rewrite ^ {uri.AbsolutePath}$uri break;");
                     }
