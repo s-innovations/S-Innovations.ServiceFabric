@@ -79,7 +79,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
             services.AddSingleton(Container);
             services.AddSingleton<IServiceProviderFactory<IServiceCollection>>(new UnityServiceProviderFactory(Container));
-            services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>();
+            services.AddSingleton<IStartupFilter>(new UseForwardedHeadersStartupFilter($"{this.Context.ServiceName.AbsoluteUri.Substring("fabric:/".Length)}/{Context.CodePackageActivationContext.CodePackageVersion}"));
            
         }
 
@@ -107,7 +107,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                             var builder=new WebHostBuilder().UseKestrel()
                                 .ConfigureServices(ConfigureServices)
-                                .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)                              
+                             //   .UseCustomServiceFabricIntegration(listener as CustomKestrelCommunicationListener , ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
+                             //   .ConfigureServices((services)=>{ services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>(); })
                                 .UseContentRoot(Directory.GetCurrentDirectory());
 
 

@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using System;
-using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,8 +12,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Communica
         private readonly ServiceContext _serviceContext;
         public CustomKestrelCommunicationListener(ServiceContext serviceContext, string serviceEdpoint, Func<string, AspNetCoreCommunicationListener, IWebHost> build) : base(serviceContext, serviceEdpoint, build)
         {
-            _serviceContext = serviceContext;
-        }
+            _serviceContext = serviceContext;           
+        }        
 
         public override async Task<string> OpenAsync(CancellationToken cancellationToken)
         {

@@ -163,6 +163,34 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 var proxies = await GetGatewayServicesAsync(token);
 
 
+                foreach (var upstreams in proxies.GroupBy(k => k.ServiceName))
+                {
+                    var hashset = new HashSet<string>();
+
+                    var uniques = upstreams.Where(upstream => {
+                        var added = hashset.Contains(new Uri(upstream.BackendPath).Authority);
+                        if (!added) { hashset.Add(new Uri(upstream.BackendPath).Authority); }
+                        return !added;
+                        }).ToArray();
+
+                    var upstreamName = upstreams.Key.AbsoluteUri.Split('/').Last().Replace('.', '_');
+                    //$upstream_addr
+                    sb.AppendLine($"\tupstream {upstreamName} {{");
+                    foreach (var upstream in uniques)
+                    {
+
+                        sb.AppendLine($"\t\tserver {new Uri(upstream.BackendPath).Authority.Replace("localhost", "127.0.0.1")} {(upstream.IPAddressOrFQDN != Context.NodeContext.IPAddressOrFQDN ? "backup" : "")};");
+                    }
+                    sb.AppendLine("\t}");
+
+                    //sb.AppendLine($"\tmap $upstream_addr ${upstreamName}uniquepath {{");
+                    ////sb.AppendLine("\t\tdefault          $upstream_addr;");
+                    //foreach (var upstream in uniques)
+                    //{
+                    //    sb.AppendLine($"\t\t{new Uri(upstream.BackendPath).Authority.Replace("localhost","127.0.0.1")} \"{new Uri(upstream.BackendPath).AbsolutePath.Trim('/')}\";");
+                    //}
+                    //sb.AppendLine("\t}");
+                }
 
                 foreach (var serverGroup in proxies.GroupByServerName())
                 {
@@ -175,6 +203,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                         sslOn = state != null && state.Completed;
                     }
 
+                    
 
                     sb.AppendLine("\tserver {");
                     {
@@ -210,9 +239,14 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                         foreach (var a in serverGroup.Value)
                         {
-                            if (a.IPAddressOrFQDN == this.Context.NodeContext.IPAddressOrFQDN)
+                            if (a.IPAddressOrFQDN == Context.NodeContext.IPAddressOrFQDN)
                             {
-                                WriteProxyPassLocation(2, a.ReverseProxyLocation, a.BackendPath, sb);
+                                var upstreamName = a.ServiceName.AbsoluteUri.Split('/').Last().Replace('.','_');
+
+                                var url = a.BackendPath;
+                                url = "http://" + upstreamName;
+
+                                WriteProxyPassLocation(2, a.ReverseProxyLocation, url, sb, $"\"{a.ServiceName.AbsoluteUri.Substring("fabric:/".Length)}/{a.ServiceVersion}\"");
                             }
                         }
 
@@ -245,7 +279,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         }
 
-        private static void WriteProxyPassLocation(int level, string location, string url, StringBuilder sb)
+        private static void WriteProxyPassLocation(int level, string location, string url, StringBuilder sb,string uniquekey)
         {
 
             var tabs = string.Join("", Enumerable.Range(0, level + 1).Select(r => "\t"));
@@ -284,6 +318,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Server     $host;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Proto      $scheme;");
                 sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-Path       $request_uri;");
+                sb.AppendLine($"{tabs}proxy_set_header X-ServiceFabric-Key    {uniquekey};");
 
                 sb.AppendLine($"{tabs}proxy_connect_timeout                   3s;");
 
