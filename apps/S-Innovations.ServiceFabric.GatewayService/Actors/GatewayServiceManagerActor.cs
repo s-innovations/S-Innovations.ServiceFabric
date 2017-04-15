@@ -32,7 +32,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
     [ActorService()]
     public class GatewayServiceManagerActor : Actor, IGatewayServiceManagerActor, IRemindable
     {
-        private const string REMINDER_NAME = "processSslQueue";
+        private const string CREAT_SSL_REMINDERNAME = "processSslQueue";
         private const string CERT_QUEUE_NAME = "certQueue";
         public const string STATE_LAST_UPDATED_NAME = "lastUpdated";
         public const string STATE_PROXY_DATA_NAME = "proxyData";
@@ -60,12 +60,15 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
        
         public async Task RequestCertificateAsync(string hostname, SslOptions options)
         {
-             
-                await StateManager.AddOrUpdateStateAsync($"cert_{hostname}", new CertGenerationState { HostName = hostname, SslOptions = options, RunAt=DateTimeOffset.UtcNow }, (key,old)=> new CertGenerationState { HostName = hostname, SslOptions = options, RunAt = DateTimeOffset.UtcNow, Completed = old.Completed });
+
+
+            await StateManager.AddOrUpdateStateAsync($"cert_{hostname}", 
+                new CertGenerationState { HostName = hostname, SslOptions = options, RunAt=DateTimeOffset.UtcNow }, 
+                (key,old)=> new CertGenerationState { HostName = hostname, SslOptions = options, RunAt = DateTimeOffset.UtcNow, Completed = old.Completed });
             
             await AddHostnameToQueue(hostname);
 
-            await RegisterReminderAsync(REMINDER_NAME, new byte[0],
+            await RegisterReminderAsync(CREAT_SSL_REMINDERNAME, new byte[0],
                TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
 
         }
@@ -96,7 +99,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
 
         public async Task ReceiveReminderAsync(string reminderName, byte[] context, TimeSpan dueTime, TimeSpan period)
         {
-            if (reminderName.Equals(REMINDER_NAME))
+            if (reminderName.Equals(CREAT_SSL_REMINDERNAME))
             {
 
                 var certs = StorageAccount.CreateCloudBlobClient().GetContainerReference("certs");
@@ -108,17 +111,15 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                 var hostname = store.First();
 
                 var certBlob = certs.GetBlockBlobReference($"{hostname}.crt");
+                var fullchain = certs.GetBlockBlobReference($"{hostname}.fullchain.pem");
                 var keyBlob = certs.GetBlockBlobReference($"{hostname}.key");
 
 
                 var certInfo = await StateManager.GetStateAsync<CertGenerationState>($"cert_{hostname}");
 
 
-                if (!(await certBlob.ExistsAsync() && await keyBlob.ExistsAsync()))
-                {
-
-
-
+                if ((await Task.WhenAll(certBlob.ExistsAsync() , keyBlob.ExistsAsync() , fullchain.ExistsAsync())).Any(t=>t == false))
+                {  
                     try
                     {
 
@@ -128,9 +129,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                             SignerEmail = certInfo.SslOptions.SignerEmail
                         });
 
-
-                        await certBlob.UploadFromByteArrayAsync(cert.Item2, 0, cert.Item2.Length);
                         await keyBlob.UploadFromByteArrayAsync(cert.Item1, 0, cert.Item1.Length);
+                        await certBlob.UploadFromByteArrayAsync(cert.Item2, 0, cert.Item2.Length);               
+                        await fullchain.UploadFromByteArrayAsync(cert.Item3, 0, cert.Item3.Length);
 
                         certInfo.Completed = true;
                     }
@@ -157,7 +158,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Actors
                 if (missing.Any())
                 {
                     await RegisterReminderAsync(
-                      REMINDER_NAME, new byte[0],
+                      CREAT_SSL_REMINDERNAME, new byte[0],
                       TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(-1));
                 }
 

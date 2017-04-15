@@ -199,7 +199,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                     if (sslOn)
                     {
-                        var state = await GetCertGenerationStateAsync(serverName, serverGroup.Value.First().Ssl, token);
+                        var state = await GetCertGenerationStateAsync(serverName, serverGroup.Value.First().Ssl, false, token);
                         sslOn = state != null && state.Completed;
                     }
 
@@ -223,16 +223,33 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
                             var certBlob = certs.GetBlockBlobReference($"{serverName}.crt");
                             var keyBlob = certs.GetBlockBlobReference($"{serverName}.key");
-
+                            var chainBlob = certs.GetBlockBlobReference($"{serverName}.fullchain.pem");
 
                             Directory.CreateDirectory(Path.Combine(Context.CodePackageActivationContext.WorkDirectory, "letsencrypt"));
 
-                            await certBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt", FileMode.Create);
                             await keyBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key", FileMode.Create);
 
+                            if (await chainBlob.ExistsAsync())
+                            {
+                                await chainBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.fullchain.pem", FileMode.Create);
+                                sb.AppendLine($"\t\tssl_certificate {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.fullchain.pem;");
 
-                            sb.AppendLine($"\t\tssl_certificate {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt;");
-                            sb.AppendLine($"\t\t ssl_certificate_key {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key;");
+                            }
+                            else
+                            {
+                                await GetCertGenerationStateAsync(serverName, serverGroup.Value.First().Ssl, true, token);
+                                await certBlob.DownloadToFileAsync($"{Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt", FileMode.Create);
+                                sb.AppendLine($"\t\tssl_certificate {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.crt;");
+                            }
+
+                            sb.AppendLine($"\t\tssl_certificate_key {Context.CodePackageActivationContext.WorkDirectory}/letsencrypt/{serverName}.key;");
+
+                            sb.AppendLine($"\t\tssl_session_timeout  5m;");
+
+                            sb.AppendLine($"\t\tssl_prefer_server_ciphers on;");
+                            sb.AppendLine($"\t\tssl_protocols TLSv1 TLSv1.1 TLSv1.2;");
+                            sb.AppendLine($"\t\tssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';");
+                            sb.AppendLine($"\t\tadd_header Strict-Transport-Security max-age=15768000;");
 
                         }
 
@@ -442,25 +459,28 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             return partitions;
         }
 
-        public async Task<CertGenerationState> GetCertGenerationStateAsync(string hostname, SslOptions options, CancellationToken token)
+        public async Task<CertGenerationState> GetCertGenerationStateAsync(string hostname, SslOptions options, bool force, CancellationToken token)
         {
-            var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
-            var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
-            List<long> partitions = await GetPartitionsAsync(actorServiceUri);
-
-            var serviceProxyFactory = new ServiceProxyFactory();
-
-            var actors = new Dictionary<long, DateTimeOffset>();
-            foreach (var partition in partitions)
+            if (!force)
             {
-                var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
+                var applicationName = this.Context.CodePackageActivationContext.ApplicationName;
+                var actorServiceUri = new Uri($"{applicationName}/GatewayServiceManagerActorService");
+                List<long> partitions = await GetPartitionsAsync(actorServiceUri);
 
-                var state = await actorService.GetCertGenerationInfoAsync(hostname, options, token);
-                if (state != null && state.RunAt.HasValue && state.RunAt.Value > DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14)))
+                var serviceProxyFactory = new ServiceProxyFactory();
+
+                var actors = new Dictionary<long, DateTimeOffset>();
+                foreach (var partition in partitions)
                 {
-                    return state;
-                }
+                    var actorService = serviceProxyFactory.CreateServiceProxy<IGatewayServiceManagerActorService>(actorServiceUri, new ServicePartitionKey(partition));
 
+                    var state = await actorService.GetCertGenerationInfoAsync(hostname, options, token);
+                    if (state != null && state.RunAt.HasValue && state.RunAt.Value > DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14)))
+                    {
+                        return state;
+                    }
+
+                }
             }
 
             var gateway = ActorProxy.Create<IGatewayServiceManagerActor>(new ActorId(0));
