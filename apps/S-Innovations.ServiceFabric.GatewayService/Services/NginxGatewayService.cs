@@ -152,7 +152,51 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             File.WriteAllText("mime.types", WriteMimeTypes(sb, "mime.types").ToString());
 
             sb.AppendLine("\tkeepalive_timeout          65;");
-            sb.AppendLine("\tgzip                       on;");
+
+
+            /// ******************************  begin gzip section ********************
+            /// Compression           
+            sb.AppendLine("\tgzip                       on;"); /// # Enable Gzip compressed.
+
+            ///# Enable compression both for HTTP/1.0 and HTTP/1.1.
+            sb.AppendLine("\tgzip_http_version  1.1;");
+
+
+            ///Compression level (1-9).
+            /// 5 is a perfect compromise between size and cpu usage, offering about
+            /// 75% reduction for most ascii files (almost identical to level 9).
+            sb.AppendLine("\tgzip_comp_level    5;");
+
+            /// Don't compress anything that's already small and unlikely to shrink much
+            ///if at all (the default is 20 bytes, which is bad as that usually leads to
+            /// larger files after gzipping).
+            sb.AppendLine("\tgzip_min_length    1000;");
+
+            /// Compress data even for clients that are connecting to us via proxies,
+            /// identified by the "Via" header (required for CloudFront).
+            sb.AppendLine("\tgzip_proxied       any;");
+
+            /// Tell proxies to cache both the gzipped and regular version of a resource
+            /// whenever the client's Accept-Encoding capabilities header varies;
+            /// Avoids the issue where a non-gzip capable client (which is extremely rare
+            /// today) would display gibberish if their proxy gave them the gzipped version.
+            sb.AppendLine("\tgzip_vary          on;");
+
+            /// Compress all output labeled with one of the following MIME-types.
+            /// text/html is always compressed by HttpGzipModule
+            sb.AppendLine("\tgzip_types");
+                sb.AppendLine("\t\ttext/css");
+                sb.AppendLine("\t\ttext/*");
+                sb.AppendLine("\t\ttext/javascript");
+                sb.AppendLine("\t\tmessage/*");
+                sb.AppendLine("\t\tapplication/x-javascript");
+                sb.AppendLine("\t\tapplication/json");
+                sb.AppendLine("\t\tapplication/xml");
+                sb.AppendLine("\t\tapplication/atom+xml");
+                sb.AppendLine("\t\tapplication/xaml+xml;");
+            ///******************************  end gzip section ********************
+
+
             sb.AppendLine("\tproxy_buffer_size          128k;");
             sb.AppendLine("\tproxy_buffers              4 256k;");
             sb.AppendLine("\tproxy_busy_buffers_size    256k;");
@@ -338,7 +382,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 sb.AppendLine($"{tabs}proxy_set_header X-ServiceFabric-Key    {uniquekey};");
 
                 sb.AppendLine($"{tabs}proxy_connect_timeout                   3s;");
-
+                sb.AppendLine($"{tabs}proxy_http_version                      1.1;");
+                
 
                 if (location.Trim().StartsWith("~"))
                     sb.AppendLine($"{tabs}proxy_set_header X-Forwarded-PathBase   /;");
@@ -574,7 +619,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
 
         }
-        #endregion StatelessService
+#endregion StatelessService
 
 
     }
