@@ -185,15 +185,18 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             /// Compress all output labeled with one of the following MIME-types.
             /// text/html is always compressed by HttpGzipModule
             sb.AppendLine("\tgzip_types");
+            {
                 sb.AppendLine("\t\ttext/css");
                 sb.AppendLine("\t\ttext/*");
                 sb.AppendLine("\t\ttext/javascript");
+                sb.AppendLine("\t\tapplication/javascript");
                 sb.AppendLine("\t\tmessage/*");
                 sb.AppendLine("\t\tapplication/x-javascript");
                 sb.AppendLine("\t\tapplication/json");
                 sb.AppendLine("\t\tapplication/xml");
                 sb.AppendLine("\t\tapplication/atom+xml");
                 sb.AppendLine("\t\tapplication/xaml+xml;");
+            }
             ///******************************  end gzip section ********************
 
 
