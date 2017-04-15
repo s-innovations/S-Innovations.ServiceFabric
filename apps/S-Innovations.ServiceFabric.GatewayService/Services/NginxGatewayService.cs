@@ -143,10 +143,14 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("worker_processes  1;");
+            sb.AppendLine("worker_processes  4;");
             sb.AppendLine("events {\n\tworker_connections  1024;\n}");
             sb.AppendLine("http {");
 
+
+            sb.AppendLine();
+
+            
 
 
             File.WriteAllText("mime.types", WriteMimeTypes(sb, "mime.types").ToString());
@@ -209,6 +213,9 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
             {
                 var proxies = await GetGatewayServicesAsync(token);
 
+                var codePackage = this.Context.CodePackageActivationContext.CodePackageName;
+                var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
+                var codePath = this.Context.CodePackageActivationContext.GetCodePackageObject(codePackage).Path;
 
                 foreach (var upstreams in proxies.GroupBy(k => k.ServiceName))
                 {
@@ -230,13 +237,21 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                     }
                     sb.AppendLine("\t}");
 
-                    //sb.AppendLine($"\tmap $upstream_addr ${upstreamName}uniquepath {{");
-                    ////sb.AppendLine("\t\tdefault          $upstream_addr;");
-                    //foreach (var upstream in uniques)
-                    //{
-                    //    sb.AppendLine($"\t\t{new Uri(upstream.BackendPath).Authority.Replace("localhost","127.0.0.1")} \"{new Uri(upstream.BackendPath).AbsolutePath.Trim('/')}\";");
-                    //}
-                    //sb.AppendLine("\t}");
+
+                    try
+                    {
+                        if (Directory.Exists(Path.Combine(codePath, $"cache/{upstreamName}")))
+                        {
+                            Directory.Delete(Path.Combine(codePath, $"cache/{upstreamName}"),true);
+                        }
+                    }catch(Exception ex)
+                    {
+
+                    }
+
+                    sb.AppendLine($"\tproxy_cache_path  cache/{upstreamName}  levels=1:2    keys_zone={upstreamName}:10m inactive=24h  max_size=1g;");
+
+                 
                 }
 
                 foreach (var serverGroup in proxies.GroupByServerName())
@@ -310,7 +325,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                                 var url = a.BackendPath;
                                 url = "http://" + upstreamName;
 
-                                WriteProxyPassLocation(2, a.ReverseProxyLocation, url, sb, $"\"{a.ServiceName.AbsoluteUri.Substring("fabric:/".Length)}/{a.ServiceVersion}\"");
+                                WriteProxyPassLocation(2, a.ReverseProxyLocation, url, sb, $"\"{a.ServiceName.AbsoluteUri.Substring("fabric:/".Length)}/{a.ServiceVersion}\"", upstreamName);
                             }
                         }
 
@@ -343,16 +358,17 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         }
 
-        private static void WriteProxyPassLocation(int level, string location, string url, StringBuilder sb,string uniquekey)
+        private static void WriteProxyPassLocation(int level, string location, string url, StringBuilder sb,string uniquekey, string upstreamName)
         {
 
             var tabs = string.Join("", Enumerable.Range(0, level + 1).Select(r => "\t"));
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}location {location} {{");
             {
                 // rewrite ^ /268be5f6-90b1-4aa1-9eac-2225d8f7ab29/131356467681395031/$1 break;
+                var uri = new Uri(url);
                 if (location.StartsWith("~"))
                 {
-                    var uri = new Uri(url);
+                   
 
                     if (!string.IsNullOrEmpty(uri.AbsolutePath?.TrimEnd('/')))
                     {
@@ -364,9 +380,21 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 else
                 {
                     sb.AppendLine($"{tabs}proxy_pass {url.TrimEnd('/')}/;");
+
+                    sb.AppendLine($"{tabs}proxy_cache {upstreamName};");
+
+                    sb.AppendLine($"{tabs}proxy_cache_revalidate on;");
+                    sb.AppendLine($"{tabs}proxy_cache_min_uses 3;");
+                    sb.AppendLine($"{tabs}add_header X-Cache-Status $upstream_cache_status;");
+
+                    sb.AppendLine($"{tabs}proxy_cache_valid      200  1d;");
+                    sb.AppendLine($"{tabs}proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;");
+
+
                 }
 
-               
+
+
                 //  sb.AppendLine($"{tabs}proxy_redirect off;");
                 sb.AppendLine($"{tabs}server_name_in_redirect on;");
                 sb.AppendLine($"{tabs}port_in_redirect off;");
@@ -397,6 +425,8 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 }
 
                 sb.AppendLine($"{tabs}proxy_cache_bypass $http_upgrade;");
+                sb.AppendLine($"{tabs}proxy_cache_bypass $http_pragma;");
+                
             }
             sb.AppendLine($"{string.Join("", Enumerable.Range(0, level).Select(r => "\t"))}}}");
 
