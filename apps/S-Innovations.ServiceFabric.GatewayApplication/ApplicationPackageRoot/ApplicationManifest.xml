@@ -45,7 +45,7 @@
       </StatelessService>
     </Service>
     <Service Name="GatewayServiceManagerActorService" GeneratedIdRef="ef5ab963-c061-486e-bb1c-84bf1c2fc7e1|Persisted">
-      <StatefulService ServiceTypeName="GatewayServiceManagerActorServiceType" TargetReplicaSetSize="3">
+      <StatefulService ServiceTypeName="GatewayServiceManagerActorServiceType">
         <UniformInt64Partition PartitionCount="2" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>

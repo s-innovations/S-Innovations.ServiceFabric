@@ -214,7 +214,6 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
                 var proxies = await GetGatewayServicesAsync(token);
 
                 var codePackage = this.Context.CodePackageActivationContext.CodePackageName;
-                var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
                 var codePath = this.Context.CodePackageActivationContext.GetCodePackageObject(codePackage).Path;
 
                 foreach (var upstreams in proxies.GroupBy(k => k.ServiceName))
@@ -438,8 +437,7 @@ namespace SInnovations.ServiceFabric.GatewayService.Services
 
         private void LaunchNginxProcess(string arguments)
         {
-            var codePackage = this.Context.CodePackageActivationContext.CodePackageName;
-            var configPackage = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
+            var codePackage = this.Context.CodePackageActivationContext.CodePackageName;           
             var codePath = this.Context.CodePackageActivationContext.GetCodePackageObject(codePackage).Path;
             var res = File.Exists(Path.Combine(codePath, nginxVersion));
             var nginxStartInfo = new ProcessStartInfo(Path.Combine(codePath, nginxVersion))

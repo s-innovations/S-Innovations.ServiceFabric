@@ -1,1 +1,1 @@
-netsh advfirewall firewall add rule name="Nginx (port 80)" dir=in action=allow program=.\nginx-1.11.3.exe enable=yes
+netsh advfirewall firewall show rule name="Nginx (public)" || netsh advfirewall firewall add rule name="Nginx (public)" dir=in action=allow program=.\nginx-1.11.13.exe enable=yes
