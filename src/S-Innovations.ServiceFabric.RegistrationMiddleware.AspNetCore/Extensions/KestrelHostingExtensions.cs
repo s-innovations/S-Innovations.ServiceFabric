@@ -36,7 +36,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Extension
         {
 
 
-            container.Configure<ApplicationInsights>(container.Resolve<IConfiguration>().GetSection("ApplicationInsights"));
+            container.Configure<ApplicationInsights>("ApplicationInsights");
 
             container.ConfigureSerilogging((logConfiguration) =>
             {

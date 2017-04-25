@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Startup;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Model;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Communication;
+using Microsoft.Extensions.Options;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -111,7 +112,12 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                              //   .ConfigureServices((services)=>{ services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>(); })
                                 .UseContentRoot(Directory.GetCurrentDirectory());
 
-                          
+                            if (Container.IsRegistered<IConfigureOptions<ApplicationInsights>>())
+                            {
+                                    builder.UseApplicationInsights(Container.Resolve<ApplicationInsights>().InstrumentationKey);
+                            }
+                        
+
                             
                             builder.ConfigureServices((services) =>
                             {
