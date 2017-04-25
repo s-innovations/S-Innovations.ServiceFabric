@@ -16,20 +16,31 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace SInnovations.ServiceFabric.Storage.Extensions
 {
     public static class StorageConfigurationExtensions
     {
 
-        public static IUnityContainer ConfigureApplicationStorage(this IUnityContainer container)
+        public static IUnityContainer ConfigureApplicationStorage(this IUnityContainer container, bool useFileCache = true)
         {
-
+            container.RegisterType<IKeyManager, XmlKeyManager>();
           
+            if(useFileCache)
+            {
+                container
+                  .RegisterType<TokenCache, FileCache>(new ContainerControlledLifetimeManager(), new InjectionConstructor(typeof(ILoggerFactory), typeof(IDataProtectionProvider)))
+                  .RegisterType<IDataProtectionProvider>(new ContainerControlledLifetimeManager(), new InjectionFactory(c => DataProtectionProvider.Create(c.Resolve<ICodePackageActivationContext>().ApplicationName)));
+
+            }
+            else
+            {
+                container.RegisterInstance(new TokenCache());
+            }
+
 
             return container
-                .RegisterType<TokenCache, FileCache>(new ContainerControlledLifetimeManager(), new InjectionConstructor(typeof(ILoggerFactory), typeof(IDataProtectionProvider)))
-                .RegisterType<IDataProtectionProvider>(new ContainerControlledLifetimeManager(), new InjectionFactory(c => DataProtectionProvider.Create(c.Resolve<ICodePackageActivationContext>().ApplicationName)))
                 .AddSingleton<StorageConfiguration>();
 
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>S-Innovations.ServiceFabric.GatewayService</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -29,12 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017040801"></PackageReference>
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017042503"></PackageReference>
     <PackageReference Include="S-Innovations.LetsEncrypt.DnsMadeEasyChallenger" Version="1.0.0-pre-2017041504" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="1.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.0.0-preview1-24627" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.0.0-preview1-24627" />
     <PackageReference Include="Serilog.Sinks.Literate" Version="2.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.0-preview1-24627" />
+    <PackageReference Include="System.Net.Http" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">

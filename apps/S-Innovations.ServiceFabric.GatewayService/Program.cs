@@ -44,9 +44,11 @@ namespace SInnovations.ServiceFabric.GatewayService
 
 
                 var keyvaultINfo = container.Resolve<KeyVaultSecretManager>();
-                var configuration = new ConfigurationBuilder()
-                    .AddAzureKeyVault(keyvaultINfo.KeyVaultUrl, keyvaultINfo.Client, keyvaultINfo)
-                    .Build(container);
+
+                container.UseConfiguration(new ConfigurationBuilder()
+                    .AddAzureKeyVault(keyvaultINfo.KeyVaultUrl, keyvaultINfo.Client, keyvaultINfo));
+
+
 
                 container.Configure<KeyVaultOptions>("KeyVault");
 

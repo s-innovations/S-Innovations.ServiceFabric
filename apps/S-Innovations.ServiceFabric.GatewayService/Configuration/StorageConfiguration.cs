@@ -97,17 +97,12 @@ namespace SInnovations.ServiceFabric.GatewayService.Configuration
             KeyVaultUrl = section["Azure.KeyVault.Uri"].Value;
 
             KeyVaultClient.AuthenticationCallback callback =
-                (authority, resource, scope) => GetTokenFromClientSecret(authority, resource);
+                (authority, resource, scope) => AzureAD.GetTokenFromClientSecret(authority, resource);
 
             Client = new KeyVaultClient(callback);
         }
 
-        private async Task<string> GetTokenFromClientSecret(string authority, string resource)
-        {
-            var authContext = new AuthenticationContext(authority);
-            var result = await authContext.AcquireTokenAsync(resource, AzureAD.CreateSecureCredentials());
-            return result.AccessToken;
-        }
+        
         /// <inheritdoc />
         public virtual string GetKey(SecretBundle secret)
         {

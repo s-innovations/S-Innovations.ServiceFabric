@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyTitle>ServiceFabric Gateway Registration Middleware for AspNetCore</AssemblyTitle>
     <VersionPrefix>1.0.1</VersionPrefix>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
     <AssemblyName>S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore</AssemblyName>
     <PackageId>S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore</PackageId>
@@ -23,13 +23,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0-preview1-24628" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="5.5.216" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="2.5.216" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017040801"></PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="1.1.1" />
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017042503"></PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.0.0-preview1-24627" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">

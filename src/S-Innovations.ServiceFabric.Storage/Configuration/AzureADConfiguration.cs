@@ -72,6 +72,12 @@ namespace SInnovations.ServiceFabric.Storage.Configuration
 
         //   public string TenantId { get; set; }
         //   public ClientCredential AzureADServiceCredentials { get; set; }
+        public async Task<string> GetTokenFromClientSecret(string authority, string resource)
+        {
+            var authContext = new AuthenticationContext(authority);
+            var result = await authContext.AcquireTokenAsync(resource, this.CreateSecureCredentials());
+            return result.AccessToken;
+        }
 
         public ClientCredential CreateSecureCredentials()
         {

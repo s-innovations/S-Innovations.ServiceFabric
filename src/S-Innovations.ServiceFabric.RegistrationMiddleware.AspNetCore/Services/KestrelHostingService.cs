@@ -111,7 +111,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                              //   .ConfigureServices((services)=>{ services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>(); })
                                 .UseContentRoot(Directory.GetCurrentDirectory());
 
-
+                          
+                            
                             builder.ConfigureServices((services) =>
                             {
                                 services.AddSingleton(listener);                                
