@@ -16,14 +16,14 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.Owin
     {
 
         
-        public static IAppBuilder UseAsServiceFabricGatewayService(this IAppBuilder app, GatewayServiceInformation gatewayInfo )
-        {
+        //public static IAppBuilder UseAsServiceFabricGatewayService(this IAppBuilder app, GatewayServiceInformation gatewayInfo )
+        //{
 
-            app.Use(typeof(ServiceRegistrationMiddleware), gatewayInfo);
+        //    app.Use(typeof(ServiceRegistrationMiddleware), gatewayInfo);
 
-            return app;
+        //    return app;
 
-        }
+        //}
     }
    
 }

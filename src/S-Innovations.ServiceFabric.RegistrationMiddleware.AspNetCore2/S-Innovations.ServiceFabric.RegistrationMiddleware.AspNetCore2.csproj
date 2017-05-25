@@ -3,10 +3,10 @@
   <PropertyGroup>
     <AssemblyTitle>ServiceFabric Gateway Registration Middleware for AspNetCore</AssemblyTitle>
     <VersionPrefix>1.0.1</VersionPrefix>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
     <AssemblyName>S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore</AssemblyName>
-    <PackageId>S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore</PackageId>
+    <PackageId>S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore2</PackageId>
     <PackageTags>S-Innovations ServiceFabric Gateway</PackageTags>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -17,6 +17,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
 
   <ItemGroup>
+    <Compile Include="..\S-Innovations.ServiceFabric.RegistrationMiddleware.AspNetCore\FabricContainer.cs" Link="FabricContainer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\S-Innovations.ServiceFabric.Gateway.Common\S-Innovations.ServiceFabric.Gateway.Common.csproj" />
     <!--<ProjectReference Include="C:\dev\sinnovations\S-Innovations.ServiceFabric.Unity\src\S-Innovations.ServiceFabric.Unity\S-Innovations.ServiceFabric.Unity.csproj" />-->
     
@@ -24,18 +28,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0-preview2-25229" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="5.6.210" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="2.6.210" />
-    <PackageReference Include="S-Innovations.Unity.AspNetCore" Version="1.0.0-pre-2017052508" />
+    <PackageReference Include="S-Innovations.Unity.AspNetCore2" Version="1.0.0-pre-2017052504" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052508"></PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="1.1.2" />
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052504"></PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.0.0-preview2-25229" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
+
 </Project>

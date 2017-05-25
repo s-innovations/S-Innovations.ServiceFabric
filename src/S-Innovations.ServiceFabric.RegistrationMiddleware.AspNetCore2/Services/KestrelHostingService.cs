@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Practices.Unity;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
-using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using SInnovations.ServiceFabric.Gateway.Actors;

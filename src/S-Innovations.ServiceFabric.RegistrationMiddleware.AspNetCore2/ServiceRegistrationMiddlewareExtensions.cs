@@ -12,10 +12,10 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore
     public static class ServiceRegistrationMiddlewareExtensions
     {
 
-        //public static IServiceCollection AddServiceFabricGatewayService(this IServiceCollection services)
-        //{
-        //    return services;
-        //}
+        public static IServiceCollection AddServiceFabricGatewayService(this IServiceCollection services)
+        {
+            return services;
+        }
         //public static IApplicationBuilder UseAsServiceFabricGatewayService(this IApplicationBuilder app, GatewayServiceInformation gatewayInfo)
         //{
 

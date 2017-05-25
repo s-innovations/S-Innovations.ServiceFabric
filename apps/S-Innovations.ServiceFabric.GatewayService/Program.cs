@@ -15,6 +15,8 @@ using SInnovations.ServiceFabric.Storage.Services;
 using SInnovations.ServiceFabric.Unity;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Extensions;
+using SInnovations.Unity.AspNetCore;
+using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore;
 
 namespace SInnovations.ServiceFabric.GatewayService
 {
@@ -29,7 +31,7 @@ namespace SInnovations.ServiceFabric.GatewayService
         {
 
 
-            using (var container = new UnityContainer().AsFabricContainer())
+            using (var container = new FabricContainer())
             {
                 container.AddOptions();
                 container.ConfigureSerilogging(logConfiguration =>
