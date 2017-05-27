@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052508"></PackageReference>
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052702"></PackageReference>
     <PackageReference Include="S-Innovations.LetsEncrypt.DnsMadeEasyChallenger" Version="1.0.0-pre-2017041504" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="1.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Routing" Version="1.1.2" />

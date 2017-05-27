@@ -27,15 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0-preview2-25229" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.0-beta5" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0-preview2-25289" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="5.6.210" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-    <PackageReference Include="S-Innovations.Unity.AspNetCore2" Version="1.0.0-pre-2017052504" />
+    <PackageReference Include="S-Innovations.Unity.AspNetCore2" Version="1.0.0-pre-2017052702" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="1.4.0" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.2.1" />
-    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052504"></PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.0.0-preview2-25229" />
+    <PackageReference Include="S-Innovations.ServiceFabric.Unity" Version="1.0.0-pre-2017052702"></PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.0.0-preview2-25289" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
   </ItemGroup>
 
