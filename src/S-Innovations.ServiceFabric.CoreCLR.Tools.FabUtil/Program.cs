@@ -20,7 +20,7 @@ namespace SInnovations.ServiceFabric.CoreCLR.Tools.FabUtil
                 .TakeWhile(s => !s.Equals(".nuget", StringComparison.OrdinalIgnoreCase)));
 
           //TODO nuget versioning from current dependencies.
-           var fileName = Path.Combine(basePath, @".nuget\packages\Microsoft.ServiceFabric.Actors\2.4.145\build\FabActUtil.exe");
+           var fileName = Path.Combine(basePath, @".nuget\packages\Microsoft.ServiceFabric.Actors\2.6.210\build\FabActUtil.exe");
           
 
             // Fires up a new process to run inside this one
