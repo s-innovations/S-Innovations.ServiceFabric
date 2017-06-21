@@ -28,6 +28,7 @@ using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Model;
 using SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Communication;
 using Microsoft.Extensions.Options;
 using SInnovations.Unity.AspNetCore;
+using Serilog.Extensions.Logging;
 
 namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 {
@@ -106,7 +107,8 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             var context =serviceContext.CodePackageActivationContext;
                             var config = context.GetConfigurationPackageObject("Config");
 
-                            var builder=new WebHostBuilder().UseKestrel()
+                            var builder=new WebHostBuilder()
+                                .UseKestrel()
                                 .ConfigureServices(ConfigureServices)
                              //   .UseCustomServiceFabricIntegration(listener as CustomKestrelCommunicationListener , ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
                              //   .ConfigureServices((services)=>{ services.AddTransient<IStartupFilter, UseForwardedHeadersStartupFilter>(); })
@@ -114,7 +116,7 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
 
                             if (Container.IsRegistered<IConfigureOptions<ApplicationInsights>>())
                             {
-                                    builder.UseApplicationInsights(Container.Resolve<ApplicationInsights>().InstrumentationKey);
+                                 builder.UseApplicationInsights(Container.Resolve<ApplicationInsights>().InstrumentationKey);
                             }
                         
 
@@ -152,7 +154,20 @@ namespace SInnovations.ServiceFabric.RegistrationMiddleware.AspNetCore.Services
                             if (Container.IsRegistered<ILoggerFactory>())
                             {
                                 _logger.LogInformation("UseLoggerFactory for {gatewayKey}", Options.GatewayOptions.Key);
-                                builder.UseLoggerFactory(Container.Resolve<ILoggerFactory>());
+                                //builder.UseLoggerFactory<LoggerFactory>(Container.Resolve<ILoggerFactory>());
+                                // builder.UseLoggerFactory<LoggerFactory>();
+                                //builder.ConfigureLogging((hostingContext, logging) =>
+                                //{
+                                 
+                                //});
+                            }
+
+                            if (Container.IsRegistered<LoggerConfiguration>())
+                            {
+                                builder.ConfigureLogging((hostingContext, logging) =>
+                                {
+                                    logging.AddProvider(new SerilogLoggerProvider(Container.Resolve<LoggerConfiguration>().CreateLogger(), false));
+                                });
                             }
 
 
